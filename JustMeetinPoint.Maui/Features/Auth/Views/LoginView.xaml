@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="JustMeetingPoint.Maui.Features.Auth.Views.LoginView"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False"
+    BackgroundColor="#0B2545">
+
+    <Grid RowDefinitions="*,Auto"
+          Padding="28">
+
+        <VerticalStackLayout Grid.Row="0"
+                             VerticalOptions="Center"
+                             HorizontalOptions="Center"
+                             Spacing="20">
+
+            <Image Source="app_logo.svg"
+                   WidthRequest="100"
+                   HeightRequest="100"
+                   Aspect="AspectFit" />
+
+            <Label Text="INICIAR SESIÓN"
+                   FontSize="32"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalTextAlignment="Center" />
+
+            <Label Text="Conéctate con tu grupo"
+                   FontSize="16"
+                   TextColor="#94A3B8"
+                   HorizontalTextAlignment="Center" />
+        </VerticalStackLayout>
+
+        <VerticalStackLayout Grid.Row="1"
+                             Spacing="12">
+
+            <Entry Placeholder="Correo electrónico"
+                   Keyboard="Email"
+                   TextColor="White"
+                   PlaceholderColor="#94A3B8"
+                   BackgroundColor="Transparent" />
+
+            <Entry Placeholder="Contraseña"
+                   IsPassword="True"
+                   TextColor="White"
+                   PlaceholderColor="#94A3B8"
+                   BackgroundColor="Transparent" />
+
+            <Button Text="Iniciar sesión"
+                    HeightRequest="54"
+                    BackgroundColor="#5B3FD6"
+                    TextColor="White"
+                    CornerRadius="14"
+                    Clicked="OnLoginClicked" />
+
+            <Button Text="Crear cuenta"
+                    HeightRequest="54"
+                    BackgroundColor="Transparent"
+                    TextColor="White"
+                    BorderColor="White"
+                    BorderWidth="1"
+                    CornerRadius="14"
+                    Clicked="OnRegisterClicked" />
+        </VerticalStackLayout>
+
+    </Grid>
+</ContentPage>

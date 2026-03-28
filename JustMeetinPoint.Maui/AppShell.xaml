@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Shell
+    x:Class="JustMeetingPoint.Maui.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:auth="clr-namespace:JustMeetingPoint.Maui.Features.Auth.Views"
+    xmlns:home="clr-namespace:JustMeetingPoint.Maui.Features.Home.Views"
+    Title="JustMeetingPoint"
+    Shell.FlyoutBehavior="Disabled">
+
+    <ShellContent
+        Route="login"
+        Shell.NavBarIsVisible="False"
+        Shell.TabBarIsVisible="False"
+        ContentTemplate="{DataTemplate auth:LoginView}" />
+
+    <TabBar Route="main">
+        <Tab Title="Home">
+            <ShellContent
+                Route="home"
+                Shell.NavBarIsVisible="False"
+                ContentTemplate="{DataTemplate home:HomeView}" />
+        </Tab>
+    </TabBar>
+
+</Shell>

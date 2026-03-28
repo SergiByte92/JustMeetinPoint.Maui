@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="JustMeetingPoint.Maui.Features.Auth.Views.RegisterView"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False"
+    BackgroundColor="#0B2545">
+
+    <ScrollView>
+        <Grid Padding="28"
+              RowDefinitions="*,Auto">
+
+            <VerticalStackLayout Grid.Row="0"
+                                 VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 Spacing="18">
+
+                <Image Source="app_logo.svg"
+                       WidthRequest="90"
+                       HeightRequest="90"
+                       Aspect="AspectFit" />
+
+                <Label Text="CREAR CUENTA"
+                       FontSize="30"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       HorizontalTextAlignment="Center" />
+
+                <Label Text="Regístrate para empezar a usar Just Meeting Point"
+                       FontSize="16"
+                       TextColor="#94A3B8"
+                       HorizontalTextAlignment="Center" />
+
+                <VerticalStackLayout Spacing="14"
+                                     Margin="0,24,0,0"
+                                     WidthRequest="320">
+
+                    <Entry Placeholder="Nombre"
+                           TextColor="White"
+                           PlaceholderColor="#94A3B8"
+                           BackgroundColor="Transparent" />
+
+                    <Entry Placeholder="Correo electrónico"
+                           Keyboard="Email"
+                           TextColor="White"
+                           PlaceholderColor="#94A3B8"
+                           BackgroundColor="Transparent" />
+
+                    <DatePicker TextColor="White"
+                                BackgroundColor="Transparent"
+                                Format="dd/MM/yyyy"
+                                MaximumDate="2008-12-31" />
+
+                    <Entry Placeholder="Contraseña"
+                           IsPassword="True"
+                           TextColor="White"
+                           PlaceholderColor="#94A3B8"
+                           BackgroundColor="Transparent" />
+
+                    <Entry Placeholder="Confirmar contraseña"
+                           IsPassword="True"
+                           TextColor="White"
+                           PlaceholderColor="#94A3B8"
+                           BackgroundColor="Transparent" />
+
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+
+            <VerticalStackLayout Grid.Row="1"
+                                 Spacing="12"
+                                 Margin="0,20,0,0">
+
+                <Button Text="Crear cuenta"
+                        HeightRequest="54"
+                        BackgroundColor="#5B3FD6"
+                        TextColor="White"
+                        CornerRadius="14" />
+            </VerticalStackLayout>
+
+        </Grid>
+    </ScrollView>
+</ContentPage>
