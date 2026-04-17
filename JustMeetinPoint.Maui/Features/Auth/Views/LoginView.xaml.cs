@@ -1,4 +1,5 @@
-using Microsoft.Maui.Controls;
+using JustMeetinPoint.Maui.Features.Auth.Services;
+using JustMeetinPoint.Maui.Features.Auth.ViewModels;
 
 namespace JustMeetinPoint.Maui.Features.Auth.Views
 {
@@ -7,16 +8,7 @@ namespace JustMeetinPoint.Maui.Features.Auth.Views
         public LoginView()
         {
             InitializeComponent();
-        }
-
-        private async void OnRegisterClicked(object sender, EventArgs e)
-        {
-            await Shell.Current.GoToAsync("///register");
-        }
-
-        private async void OnLoginClicked(object sender, EventArgs e)
-        {
-            await DisplayAlert("Info", "Login todavía no implementado.", "OK");
+            BindingContext = new LoginViewModel(new SocketAuthService());
         }
     }
 }

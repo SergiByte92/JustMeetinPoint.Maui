@@ -21,7 +21,7 @@
                        HeightRequest="90"
                        Aspect="AspectFit" />
 
-                <Label Text="CREAR CUENTA"
+                <Label Text="Just Meeting Point"
                        FontSize="30"
                        FontAttributes="Bold"
                        TextColor="White"
