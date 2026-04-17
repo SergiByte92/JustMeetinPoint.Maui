@@ -37,33 +37,42 @@
                                      WidthRequest="320">
 
                     <Entry Placeholder="Nombre"
+                           Text="{Binding Username}"
                            TextColor="White"
                            PlaceholderColor="#94A3B8"
                            BackgroundColor="Transparent" />
 
                     <Entry Placeholder="Correo electrónico"
+                           Text="{Binding Email}"
                            Keyboard="Email"
                            TextColor="White"
                            PlaceholderColor="#94A3B8"
                            BackgroundColor="Transparent" />
 
-                    <DatePicker TextColor="White"
+                    <DatePicker Date="{Binding BirthDate}"
+                                TextColor="White"
                                 BackgroundColor="Transparent"
                                 Format="dd/MM/yyyy"
                                 MaximumDate="2008-12-31" />
 
                     <Entry Placeholder="Contraseña"
+                           Text="{Binding Password}"
                            IsPassword="True"
                            TextColor="White"
                            PlaceholderColor="#94A3B8"
                            BackgroundColor="Transparent" />
 
                     <Entry Placeholder="Confirmar contraseña"
+                           Text="{Binding RepeatPassword}"
                            IsPassword="True"
                            TextColor="White"
                            PlaceholderColor="#94A3B8"
                            BackgroundColor="Transparent" />
 
+                    <Label Text="{Binding Message}"
+                           TextColor="Salmon"
+                           FontSize="14"
+                           LineBreakMode="WordWrap" />
                 </VerticalStackLayout>
             </VerticalStackLayout>
 
@@ -72,6 +81,7 @@
                                  Margin="0,20,0,0">
 
                 <Button Text="Crear cuenta"
+                        Command="{Binding RegisterCommand}"
                         HeightRequest="54"
                         BackgroundColor="#5B3FD6"
                         TextColor="White"

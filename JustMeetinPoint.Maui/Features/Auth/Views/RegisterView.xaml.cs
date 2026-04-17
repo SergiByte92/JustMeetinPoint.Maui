@@ -1,4 +1,5 @@
 using Microsoft.Maui.Controls;
+using JustMeetingPoint.Maui.Features.Auth.ViewModels;
 
 namespace JustMeetingPoint.Maui.Features.Auth.Views
 {
@@ -7,6 +8,7 @@ namespace JustMeetingPoint.Maui.Features.Auth.Views
         public RegisterView()
         {
             InitializeComponent();
+            BindingContext = new RegisterViewModel();
         }
     }
 }
