@@ -1,6 +1,6 @@
 using Microsoft.Maui.Controls;
 
-namespace JustMeetingPoint.Maui.Features.Auth.Views
+namespace JustMeetinPoint.Maui.Features.Auth.Views
 {
     public partial class LoginView : ContentPage
     {
@@ -16,7 +16,7 @@ namespace JustMeetingPoint.Maui.Features.Auth.Views
 
         private async void OnLoginClicked(object sender, EventArgs e)
         {
-            await Shell.Current.GoToAsync("//main");
+            await DisplayAlert("Info", "Login todavía no implementado.", "OK");
         }
     }
 }

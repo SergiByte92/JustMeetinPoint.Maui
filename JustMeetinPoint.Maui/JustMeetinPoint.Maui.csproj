@@ -94,7 +94,6 @@
 
 	<ItemGroup>
 	  <Folder Include="Features\Auth\Models\" />
-	  <Folder Include="Features\Auth\Services\" />
 	  <Folder Include="Features\Home\Models\" />
 	  <Folder Include="Features\Home\Services\" />
 	  <Folder Include="Features\Home\ViewModels\" />

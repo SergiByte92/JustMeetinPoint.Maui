@@ -1,0 +1,106 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Sockets;
+using System.Net;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace JustMeetingPoint.Maui.NetUtils
+{
+    /// <summary>
+    /// Proporciona utilidades de bajo nivel para enviar y recibir tipos de datos
+    /// a través de sockets, centralizando la serialización básica del protocolo.
+    /// </summary>
+    public class SocketTools
+    {
+        public static byte[] ReceiveExact(Socket socket, int size)
+        {
+            byte[] buffer = new byte[size];
+            int totalRead = 0;
+
+            while (totalRead < size)
+            {
+                int read = socket.Receive(buffer, totalRead, size - totalRead, SocketFlags.None);
+
+                if (read == 0)
+                    throw new SocketException((int)SocketError.ConnectionReset);
+
+                totalRead += read;
+            }
+
+            return buffer;
+        }
+
+        public static void sendBool(Socket socket, bool value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            socket.Send(bytes);
+        }
+
+        public static bool receiveBool(Socket socket)
+        {
+            byte[] bytes = ReceiveExact(socket, sizeof(bool));
+            return BitConverter.ToBoolean(bytes, 0);
+        }
+
+        public static void sendInt(Socket socket, int num)
+        {
+            byte[] bytes = BitConverter.GetBytes(num);
+            socket.Send(bytes);
+        }
+
+        public static int receiveInt(Socket socket)
+        {
+            byte[] bytes = ReceiveExact(socket, sizeof(int));
+            return BitConverter.ToInt32(bytes, 0);
+        }
+
+        public static string receiveString(Socket socket)
+        {
+            int length = receiveInt(socket);
+            byte[] bytes = ReceiveExact(socket, length);
+            return Encoding.UTF8.GetString(bytes);
+        }
+
+        public static void sendString(string message, Socket socket)
+        {
+            byte[] bytes = Encoding.UTF8.GetBytes(message);
+            int size = bytes.Length;
+
+            byte[] sizeBytes = BitConverter.GetBytes(size);
+            socket.Send(sizeBytes);
+            socket.Send(bytes);
+        }
+
+        public static void sendDouble(Socket socket, double value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            socket.Send(bytes);
+        }
+
+        // CORRECCIÓN: ahora usa ReceiveExact igual que el resto de métodos,
+        // evitando lecturas parciales en condiciones de red real.
+        public static double receiveDouble(Socket socket)
+        {
+            byte[] bytes = ReceiveExact(socket, sizeof(double));
+            return BitConverter.ToDouble(bytes, 0);
+        }
+
+        public static void sendDate(DateOnly date, Socket socket)
+        {
+            sendString(date.ToString("yyyy-MM-dd"), socket);
+        }
+
+        public static Socket CreateSocketConnection(string ip, int port)
+        {
+            IPAddress address = IPAddress.Parse(ip);
+            IPEndPoint endpoint = new IPEndPoint(address, port);
+
+            Socket socket = new Socket(address.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
+            socket.Connect(endpoint);
+
+            return socket;
+        }
+    }
+}

@@ -1,14 +1,13 @@
-using Microsoft.Maui.Controls;
-using JustMeetingPoint.Maui.Features.Auth.ViewModels;
+using JustMeetinPoint.Maui.Features.Auth.Services;
+using JustMeetinPoint.Maui.Features.Auth.ViewModels;
 
-namespace JustMeetingPoint.Maui.Features.Auth.Views
+namespace JustMeetinPoint.Maui.Features.Auth.Views;
+
+public partial class RegisterView : ContentPage
 {
-    public partial class RegisterView : ContentPage
+    public RegisterView()
     {
-        public RegisterView()
-        {
-            InitializeComponent();
-            BindingContext = new RegisterViewModel();
-        }
+        InitializeComponent();
+        BindingContext = new RegisterViewModel(new SocketAuthService());
     }
 }
