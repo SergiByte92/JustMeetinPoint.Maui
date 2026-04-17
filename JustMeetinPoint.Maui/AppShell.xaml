@@ -3,16 +3,46 @@
     x:Class="JustMeetinPoint.Maui.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:views="clr-namespace:JustMeetinPoint.Maui.Features.Auth.Views"
+    xmlns:authViews="clr-namespace:JustMeetinPoint.Maui.Features.Auth.Views"
+    xmlns:homeViews="clr-namespace:JustMeetinPoint.Maui.Features.Home.Views"
     Shell.FlyoutBehavior="Disabled">
 
+    <!-- Flujo de autenticación -->
     <ShellContent
         Title="Login"
-        ContentTemplate="{DataTemplate views:LoginView}"
+        ContentTemplate="{DataTemplate authViews:LoginView}"
         Route="login" />
 
     <ShellContent
         Title="Register"
-        ContentTemplate="{DataTemplate views:RegisterView}"
+        ContentTemplate="{DataTemplate authViews:RegisterView}"
         Route="register" />
+
+    <!-- Zona principal con TabBar -->
+    <TabBar Route="main">
+        <ShellContent
+            Title="Inicio"
+            Icon="home.png"
+            ContentTemplate="{DataTemplate homeViews:HomeView}"
+            Route="home" />
+
+        <ShellContent
+            Title="Grupo"
+            Icon="group.png"
+            ContentTemplate="{DataTemplate homeViews:GroupsView}"
+            Route="groups" />
+
+        <ShellContent
+            Title="Mapa"
+            Icon="map.png"
+            ContentTemplate="{DataTemplate homeViews:MapView}"
+            Route="map" />
+
+        <ShellContent
+            Title="Perfil"
+            Icon="profile.png"
+            ContentTemplate="{DataTemplate homeViews:ProfileView}"
+            Route="profile" />
+    </TabBar>
+
 </Shell>
