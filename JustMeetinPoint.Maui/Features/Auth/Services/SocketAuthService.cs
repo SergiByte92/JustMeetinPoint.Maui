@@ -9,6 +9,10 @@ public class SocketAuthService : IAuthService
     private readonly string _serverIp = "192.168.1.36";
     private readonly int _serverPort = 1001;
 
+    public Socket? CurrentSocket { get; private set; }
+
+    public bool IsAuthenticated => CurrentSocket != null && CurrentSocket.Connected;
+
     public async Task<RegisterResponseDto> RegisterAsync(RegisterRequestDto request)
     {
         return await Task.Run(() =>
@@ -82,17 +86,39 @@ public class SocketAuthService : IAuthService
                 bool success = SocketTools.receiveBool(socket);
                 Console.WriteLine($"Login: respuesta recibida = {success}");
 
+                if (!success)
+                {
+                    socket.Close();
+
+                    return new LoginResponseDto
+                    {
+                        Success = false,
+                        Message = "Correo o contraseña incorrectos."
+                    };
+                }
+
+                CurrentSocket = socket;
+
+                Console.WriteLine("Login OK. Socket autenticado guardado.");
+                Console.WriteLine($"Socket connected = {CurrentSocket?.Connected}");
+
                 return new LoginResponseDto
                 {
-                    Success = success,
-                    Message = success
-                        ? "Inicio de sesión correcto."
-                        : "Correo o contraseña incorrectos."
+                    Success = true,
+                    Message = "Inicio de sesión correcto."
                 };
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Login: error -> {ex}");
+
+                try
+                {
+                    socket?.Close();
+                }
+                catch
+                {
+                }
 
                 return new LoginResponseDto
                 {
@@ -100,10 +126,27 @@ public class SocketAuthService : IAuthService
                     Message = $"Error de conexión: {ex.Message}"
                 };
             }
-            finally
-            {
-                socket?.Close();
-            }
         });
+    }
+
+    public void Logout()
+    {
+        try
+        {
+            CurrentSocket?.Shutdown(SocketShutdown.Both);
+        }
+        catch
+        {
+        }
+
+        try
+        {
+            CurrentSocket?.Close();
+        }
+        catch
+        {
+        }
+
+        CurrentSocket = null;
     }
 }

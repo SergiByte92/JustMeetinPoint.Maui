@@ -5,7 +5,16 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:authViews="clr-namespace:JustMeetinPoint.Maui.Features.Auth.Views"
     xmlns:homeViews="clr-namespace:JustMeetinPoint.Maui.Features.Home.Views"
-    Shell.FlyoutBehavior="Disabled">
+    Shell.FlyoutBehavior="Disabled"
+    Shell.BackgroundColor="#0B2545"
+    Shell.ForegroundColor="#EAEAEA"
+    Shell.TitleColor="#EAEAEA"
+    Shell.UnselectedColor="#BDBDBD"
+    Shell.TabBarBackgroundColor="#061726"
+    Shell.TabBarForegroundColor="#D94FA8"
+    Shell.TabBarTitleColor="#EAEAEA"
+    Shell.TabBarUnselectedColor="#BDBDBD"
+    Shell.NavBarHasShadow="True">
 
     <ShellContent
         Title="Login"
@@ -42,5 +51,4 @@
             ContentTemplate="{DataTemplate homeViews:ProfileView}"
             Route="profile" />
     </TabBar>
-
 </Shell>

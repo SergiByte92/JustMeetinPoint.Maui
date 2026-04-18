@@ -6,12 +6,94 @@
     Title="Grupo"
     BackgroundColor="#0B2545">
 
-    <Grid>
-        <Label Text="GroupsView"
-               TextColor="White"
-               FontSize="28"
-               HorizontalOptions="Center"
-               VerticalOptions="Center" />
-    </Grid>
+    <ScrollView>
+        <VerticalStackLayout Padding="24,20,24,32" Spacing="20">
 
+            <VerticalStackLayout Spacing="6">
+                <Label
+                    Text="Grupo"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="#EAEAEA" />
+
+                <Label
+                    Text="Crea un grupo nuevo o únete con un código."
+                    FontSize="14"
+                    TextColor="#BDBDBD" />
+            </VerticalStackLayout>
+
+            <Border
+                BackgroundColor="#081C34"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 18"
+                Padding="18">
+
+                <VerticalStackLayout Spacing="12">
+                    <Label
+                        Text="Crear grupo"
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="#EAEAEA" />
+
+                    <Label
+                        Text="Genera una sala y comparte el código con tu grupo."
+                        FontSize="14"
+                        TextColor="#BDBDBD" />
+
+                    <Button
+                        Text="Crear grupo"
+                        HeightRequest="52"
+                        CornerRadius="14"
+                        BackgroundColor="#D94FA8"
+                        TextColor="White"
+                        Command="{Binding CreateGroupCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border
+                BackgroundColor="#081C34"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 18"
+                Padding="18">
+
+                <VerticalStackLayout Spacing="12">
+                    <Label
+                        Text="Unirse a un grupo"
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="#EAEAEA" />
+
+                    <Label
+                        Text="Introduce el código que te hayan compartido."
+                        FontSize="14"
+                        TextColor="#BDBDBD" />
+
+                    <Entry
+                        Text="{Binding JoinCode}"
+                        Placeholder="Ej. 8KQ4TZ"
+                        PlaceholderColor="#8F99A3"
+                        TextColor="#EAEAEA"
+                        BackgroundColor="#102A49"
+                        HeightRequest="52"
+                        MaxLength="12"
+                        ClearButtonVisibility="WhileEditing"
+                        TextTransform="Uppercase" />
+
+                    <Button
+                        Text="Unirme"
+                        HeightRequest="52"
+                        CornerRadius="14"
+                        BackgroundColor="#102A49"
+                        TextColor="#EAEAEA"
+                        Command="{Binding JoinGroupCommand}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label
+                Text="{Binding ErrorMessage}"
+                TextColor="#FF7B7B"
+                FontSize="14" />
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

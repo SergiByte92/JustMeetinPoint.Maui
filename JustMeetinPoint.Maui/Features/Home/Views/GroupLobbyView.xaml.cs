@@ -2,9 +2,9 @@ using JustMeetinPoint.Maui.Features.Home.ViewModels;
 
 namespace JustMeetinPoint.Maui.Features.Home.Views;
 
-public partial class GroupsView : ContentPage
+public partial class GroupLobbyView : ContentPage
 {
-    public GroupsView(GroupsViewModel viewModel)
+    public GroupLobbyView(GroupLobbyViewModel viewModel)
     {
         InitializeComponent();
         BindingContext = viewModel;

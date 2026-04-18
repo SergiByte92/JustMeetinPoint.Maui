@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using CommunityToolkit.Maui;
 using JustMeetinPoint.Maui.Features.Auth.Services;
-using JustMeetinPoint.Maui.Features.Auth.ViewModels;
-using JustMeetinPoint.Maui.Features.Auth.Views;
+using JustMeetinPoint.Maui.Features.Home.Services;
+using JustMeetinPoint.Maui.Features.Home.ViewModels;
+using JustMeetinPoint.Maui.Features.Home.Views;
 
 namespace JustMeetinPoint.Maui;
 
@@ -13,20 +14,16 @@ public static class MauiProgram
 
         builder
             .UseMauiApp<App>()
-            .ConfigureFonts(fonts =>
-            {
-                fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-                fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
-            });
-
-#if DEBUG
-        builder.Logging.AddDebug();
-#endif
+            .UseMauiCommunityToolkit();
 
         builder.Services.AddSingleton<IAuthService, SocketAuthService>();
+        builder.Services.AddSingleton<IGroupService, GroupService>();
 
-        builder.Services.AddTransient<RegisterViewModel>();
-        builder.Services.AddTransient<RegisterView>();
+        builder.Services.AddTransient<GroupsViewModel>();
+        builder.Services.AddTransient<GroupLobbyViewModel>();
+
+        builder.Services.AddTransient<GroupsView>();
+        builder.Services.AddTransient<GroupLobbyView>();
 
         return builder.Build();
     }

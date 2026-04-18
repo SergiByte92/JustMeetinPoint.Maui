@@ -1,10 +1,13 @@
-﻿namespace JustMeetinPoint.Maui
+﻿using JustMeetinPoint.Maui.Features.Home.Views;
+
+namespace JustMeetinPoint.Maui;
+
+public partial class AppShell : Shell
 {
-    public partial class AppShell : Shell
+    public AppShell()
     {
-        public AppShell()
-        {
-            InitializeComponent();
-        }
+        InitializeComponent();
+
+        Routing.RegisterRoute(nameof(GroupLobbyView), typeof(GroupLobbyView));
     }
 }
