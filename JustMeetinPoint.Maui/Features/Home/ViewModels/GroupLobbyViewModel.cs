@@ -182,16 +182,15 @@ public partial class GroupLobbyViewModel : ObservableObject
         if (permission != PermissionStatus.Granted)
             throw new InvalidOperationException("Permiso de ubicación denegado.");
 
-        Location? location = await Geolocation.Default.GetLastKnownLocationAsync();
-        Console.WriteLine($"[Lobby] LastKnownLocation null? {location == null}");
+        // Pequeña espera para dar margen al emulador si acabas de cambiar la ubicación.
+        await Task.Delay(1500);
 
-        if (location == null)
-        {
-            location = await Geolocation.Default.GetLocationAsync(
-                new GeolocationRequest(GeolocationAccuracy.Best));
+        Location? location = await Geolocation.Default.GetLocationAsync(
+            new GeolocationRequest(
+                GeolocationAccuracy.High,
+                TimeSpan.FromSeconds(15)));
 
-            Console.WriteLine($"[Lobby] GetLocationAsync null? {location == null}");
-        }
+        Console.WriteLine($"[Lobby] GetLocationAsync null? {location == null}");
 
         if (location == null)
             throw new InvalidOperationException("No se pudo obtener la ubicación actual.");
