@@ -41,14 +41,12 @@ public class GroupService : IGroupService
             SocketTools.sendString(groupMethod, socket);
 
             bool success = SocketTools.receiveBool(socket);
-
             if (!success)
                 throw new InvalidOperationException("No se pudo crear el grupo en el servidor.");
 
             string groupCode = SocketTools.receiveString(socket);
 
             bool sessionValid = SocketTools.receiveBool(socket);
-
             if (!sessionValid)
                 throw new InvalidOperationException("La sesión de lobby no es válida.");
 
@@ -75,12 +73,10 @@ public class GroupService : IGroupService
             SocketTools.sendString(groupCode, socket);
 
             bool success = SocketTools.receiveBool(socket);
-
             if (!success)
                 throw new InvalidOperationException("No se pudo unir al grupo.");
 
             bool sessionValid = SocketTools.receiveBool(socket);
-
             if (!sessionValid)
                 throw new InvalidOperationException("La sesión de lobby no es válida.");
 
@@ -107,7 +103,6 @@ public class GroupService : IGroupService
             SocketTools.sendInt(socket, LobbyOptionRefresh);
 
             bool sessionValid = SocketTools.receiveBool(socket);
-
             if (!sessionValid)
                 throw new InvalidOperationException("La sesión del grupo ya no existe.");
 
@@ -154,7 +149,10 @@ public class GroupService : IGroupService
         });
     }
 
-    public async Task<MeetingResultModel?> SendLocationAndWaitResultAsync(string groupCode, double latitude, double longitude)
+    public async Task<MeetingResultModel?> SendLocationAndWaitResultAsync(
+        string groupCode,
+        double latitude,
+        double longitude)
     {
         return await Task.Run(() =>
         {
@@ -166,51 +164,99 @@ public class GroupService : IGroupService
             SocketTools.sendDouble(socket, latitude);
             SocketTools.sendDouble(socket, longitude);
 
+            // Primera respuesta del servidor tras recibir la ubicación.
+            // Si ya están todas las ubicaciones, devuelve el resultado directamente.
+            // Si aún faltan usuarios, devuelve 0, 0, -1.
             double resultLat = SocketTools.receiveDouble(socket);
             double resultLon = SocketTools.receiveDouble(socket);
             int duration = SocketTools.receiveInt(socket);
 
             Console.WriteLine($"[GroupService] Respuesta inicial => lat:{resultLat}, lon:{resultLon}, duration:{duration}");
 
-            if (duration == -1)
+            // Resultado inmediato: todos los usuarios ya habían enviado su ubicación.
+            if (duration >= 0)
             {
-                while (true)
+                return new MeetingResultModel
                 {
-                    Thread.Sleep(1500);
-
-                    Console.WriteLine("[GroupService] PollResult...");
-                    SocketTools.sendInt(socket, LobbyOptionPollResult);
-
-                    resultLat = SocketTools.receiveDouble(socket);
-                    resultLon = SocketTools.receiveDouble(socket);
-                    duration = SocketTools.receiveInt(socket);
-
-                    Console.WriteLine($"[GroupService] Poll => lat:{resultLat}, lon:{resultLon}, duration:{duration}");
-
-                    if (duration >= 0)
-                    {
-                        return new MeetingResultModel
-                        {
-                            Latitude = resultLat,
-                            Longitude = resultLon,
-                            DurationSeconds = duration
-                        };
-                    }
-
-                    if (duration == -2)
-                        throw new InvalidOperationException("Error calculando la ruta en el servidor.");
-                }
+                    Latitude = resultLat,
+                    Longitude = resultLon,
+                    DurationSeconds = duration
+                };
             }
 
             if (duration == -2)
                 throw new InvalidOperationException("Error calculando la ruta en el servidor.");
 
-            return new MeetingResultModel
+            // duration == -1: el servidor está esperando las ubicaciones del resto
+            // del grupo. Entramos en bucle de polling.
+            //
+            // ── BUG CORREGIDO ────────────────────────────────────────────────────
+            // El servidor ejecuta su bucle LobbyGroup así:
+            //
+            //   while (true) {
+            //     sendBool  (sessionValid)   ← 1 byte
+            //     sendInt   (memberCount)    ← 4 bytes
+            //     sendBool  (hasStarted)     ← 1 byte
+            //     option = receiveInt()      ← lee la opción del cliente
+            //     switch(option) { ... }
+            //   }
+            //
+            // Antes del fix, el bucle de polling hacía:
+            //   sendInt(PollResult)          ← ok, el servidor lo lee como opción ✓
+            //   receiveDouble()              ← ❌ leía el bool+int+bool del siguiente
+            //   receiveDouble()              ←    ciclo del servidor como si fueran
+            //   receiveInt()                 ←    doubles/int → datos basura
+            //
+            // El primer usuario que enviaba su ubicación (sin ser el último del grupo)
+            // nunca recibía el resultado correcto. Solo el último usuario del grupo
+            // (que no necesita polling) funcionaba bien.
+            //
+            // Fix: leer los 3 valores de cabecera que el servidor envía al inicio
+            // de cada iteración de LobbyGroup ANTES de enviar PollResult.
+            // ─────────────────────────────────────────────────────────────────────
+            while (true)
             {
-                Latitude = resultLat,
-                Longitude = resultLon,
-                DurationSeconds = duration
-            };
+                Thread.Sleep(1500);
+
+                Console.WriteLine("[GroupService] PollResult: leyendo cabecera de sesión...");
+
+                // Leer la cabecera que el servidor envía al inicio de cada iteración.
+                bool sessionValid = SocketTools.receiveBool(socket);
+
+                if (!sessionValid)
+                    throw new InvalidOperationException("La sesión del grupo ha finalizado.");
+
+                // memberCount y hasStarted no son necesarios aquí,
+                // pero el servidor los envía siempre → hay que consumirlos.
+                SocketTools.receiveInt(socket);  // memberCount  (descartado)
+                SocketTools.receiveBool(socket); // hasStarted   (descartado)
+
+                // Ahora sí enviamos la opción: el servidor está esperando este int.
+                Console.WriteLine("[GroupService] Enviando PollResult...");
+                SocketTools.sendInt(socket, LobbyOptionPollResult);
+
+                // Leemos el resultado del poll.
+                resultLat = SocketTools.receiveDouble(socket);
+                resultLon = SocketTools.receiveDouble(socket);
+                duration = SocketTools.receiveInt(socket);
+
+                Console.WriteLine($"[GroupService] Poll => lat:{resultLat}, lon:{resultLon}, duration:{duration}");
+
+                if (duration >= 0)
+                {
+                    return new MeetingResultModel
+                    {
+                        Latitude = resultLat,
+                        Longitude = resultLon,
+                        DurationSeconds = duration
+                    };
+                }
+
+                if (duration == -2)
+                    throw new InvalidOperationException("Error calculando la ruta en el servidor.");
+
+                // duration == -1: seguimos esperando.
+            }
         });
     }
 
