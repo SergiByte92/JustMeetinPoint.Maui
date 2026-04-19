@@ -10,22 +10,7 @@ public partial class MapViewModel : ObservableObject
     public MapViewModel(IMeetingStateService meetingStateService)
     {
         _meetingStateService = meetingStateService;
-
-        if (_meetingStateService.CurrentResult != null)
-        {
-            Latitude = _meetingStateService.CurrentResult.Latitude;
-            Longitude = _meetingStateService.CurrentResult.Longitude;
-            DurationSeconds = _meetingStateService.CurrentResult.DurationSeconds;
-            IsDefaultMap = false;
-        }
-        else
-        {
-            // Barcelona por defecto
-            Latitude = 41.3874;
-            Longitude = 2.1686;
-            DurationSeconds = 0;
-            IsDefaultMap = true;
-        }
+        Load();
     }
 
     [ObservableProperty]
@@ -39,4 +24,28 @@ public partial class MapViewModel : ObservableObject
 
     [ObservableProperty]
     private bool isDefaultMap;
+
+    public void Load()
+    {
+        Console.WriteLine($"[MapViewModel] CurrentResult null? {_meetingStateService.CurrentResult == null}");
+
+        if (_meetingStateService.CurrentResult != null)
+        {
+            Latitude = _meetingStateService.CurrentResult.Latitude;
+            Longitude = _meetingStateService.CurrentResult.Longitude;
+            DurationSeconds = _meetingStateService.CurrentResult.DurationSeconds;
+            IsDefaultMap = false;
+
+            Console.WriteLine($"[MapViewModel] Resultado recibido => {Latitude}, {Longitude}, {DurationSeconds}");
+        }
+        else
+        {
+            Latitude = 41.3874;
+            Longitude = 2.1686;
+            DurationSeconds = 0;
+            IsDefaultMap = true;
+
+            Console.WriteLine("[MapViewModel] Sin resultado. Cargando Barcelona por defecto.");
+        }
+    }
 }

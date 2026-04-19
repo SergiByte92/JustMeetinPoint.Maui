@@ -18,6 +18,8 @@ public partial class MapView : ContentPage
     {
         base.OnAppearing();
 
+        _viewModel.Load();
+
         string lat = _viewModel.Latitude.ToString(CultureInfo.InvariantCulture);
         string lon = _viewModel.Longitude.ToString(CultureInfo.InvariantCulture);
 
