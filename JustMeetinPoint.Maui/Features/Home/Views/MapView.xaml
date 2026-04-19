@@ -6,22 +6,31 @@
     Title="Mapa"
     BackgroundColor="#0B2545">
 
-    <VerticalStackLayout Padding="24" Spacing="16">
-        <Label Text="Resultado del servidor"
-               FontSize="24"
-               FontAttributes="Bold"
-               TextColor="White" />
+    <Grid RowDefinitions="*,Auto">
+        <WebView x:Name="MapWebView"
+                 Grid.Row="0" />
 
-        <Label Text="{Binding Latitude, StringFormat='Latitud: {0:F6}'}"
-               TextColor="White"
-               FontSize="16" />
+        <VerticalStackLayout Grid.Row="1"
+                             Padding="20"
+                             Spacing="8"
+                             BackgroundColor="#0B2545">
 
-        <Label Text="{Binding Longitude, StringFormat='Longitud: {0:F6}'}"
-               TextColor="White"
-               FontSize="16" />
+            <Label Text="Mapa"
+                   FontSize="22"
+                   FontAttributes="Bold"
+                   TextColor="White" />
 
-        <Label Text="{Binding DurationSeconds, StringFormat='Duración: {0} segundos'}"
-               TextColor="White"
-               FontSize="16" />
-    </VerticalStackLayout>
+            <Label Text="{Binding Latitude, StringFormat='Latitud: {0:F6}'}"
+                   TextColor="White"
+                   FontSize="16" />
+
+            <Label Text="{Binding Longitude, StringFormat='Longitud: {0:F6}'}"
+                   TextColor="White"
+                   FontSize="16" />
+
+            <Label Text="{Binding DurationSeconds, StringFormat='Duración: {0} segundos'}"
+                   TextColor="White"
+                   FontSize="16" />
+        </VerticalStackLayout>
+    </Grid>
 </ContentPage>

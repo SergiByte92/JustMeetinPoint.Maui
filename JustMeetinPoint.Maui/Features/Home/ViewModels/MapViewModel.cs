@@ -11,19 +11,32 @@ public partial class MapViewModel : ObservableObject
     {
         _meetingStateService = meetingStateService;
 
-        Console.WriteLine($"[MapViewModel] CurrentResult null? {_meetingStateService.CurrentResult == null}");
-
         if (_meetingStateService.CurrentResult != null)
         {
             Latitude = _meetingStateService.CurrentResult.Latitude;
             Longitude = _meetingStateService.CurrentResult.Longitude;
             DurationSeconds = _meetingStateService.CurrentResult.DurationSeconds;
-
-            Console.WriteLine($"[MapViewModel] Resultado recibido => {Latitude}, {Longitude}, {DurationSeconds}");
+            IsDefaultMap = false;
+        }
+        else
+        {
+            // Barcelona por defecto
+            Latitude = 41.3874;
+            Longitude = 2.1686;
+            DurationSeconds = 0;
+            IsDefaultMap = true;
         }
     }
 
-    [ObservableProperty] private double latitude;
-    [ObservableProperty] private double longitude;
-    [ObservableProperty] private int durationSeconds;
+    [ObservableProperty]
+    private double latitude;
+
+    [ObservableProperty]
+    private double longitude;
+
+    [ObservableProperty]
+    private int durationSeconds;
+
+    [ObservableProperty]
+    private bool isDefaultMap;
 }
