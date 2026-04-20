@@ -13,17 +13,42 @@ public partial class MapViewModel : ObservableObject
         Load();
     }
 
-    [ObservableProperty]
-    private double latitude;
+    [ObservableProperty] private double latitude;
+    [ObservableProperty] private double longitude;
+    [ObservableProperty] private int durationSeconds;
+    [ObservableProperty] private bool isDefaultMap;
 
-    [ObservableProperty]
-    private double longitude;
+    // Propiedad computada: muestra la duración en formato legible.
+    // Si OTP devuelve 0 (emulador sin GPS real o misma ubicación que destino),
+    // se muestra un mensaje informativo en vez de "0 segundos".
+    public string DurationText
+    {
+        get
+        {
+            if (IsDefaultMap)
+                return "Sin datos de ruta";
 
-    [ObservableProperty]
-    private int durationSeconds;
+            if (DurationSeconds <= 0)
+                return "Duración no disponible";
 
-    [ObservableProperty]
-    private bool isDefaultMap;
+            if (DurationSeconds < 60)
+                return $"{DurationSeconds} seg";
+
+            int minutes = DurationSeconds / 60;
+            int seconds = DurationSeconds % 60;
+
+            if (seconds == 0)
+                return $"{minutes} min";
+
+            return $"{minutes} min {seconds} seg";
+        }
+    }
+
+    partial void OnDurationSecondsChanged(int value)
+        => OnPropertyChanged(nameof(DurationText));
+
+    partial void OnIsDefaultMapChanged(bool value)
+        => OnPropertyChanged(nameof(DurationText));
 
     public void Load()
     {
@@ -36,7 +61,7 @@ public partial class MapViewModel : ObservableObject
             DurationSeconds = _meetingStateService.CurrentResult.DurationSeconds;
             IsDefaultMap = false;
 
-            Console.WriteLine($"[MapViewModel] Resultado recibido => {Latitude}, {Longitude}, {DurationSeconds}");
+            Console.WriteLine($"[MapViewModel] Resultado => {Latitude}, {Longitude}, {DurationSeconds}s");
         }
         else
         {
@@ -47,5 +72,7 @@ public partial class MapViewModel : ObservableObject
 
             Console.WriteLine("[MapViewModel] Sin resultado. Cargando Barcelona por defecto.");
         }
+
+        OnPropertyChanged(nameof(DurationText));
     }
 }

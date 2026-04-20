@@ -7,30 +7,30 @@
     BackgroundColor="#0B2545">
 
     <Grid RowDefinitions="*,Auto">
-        <WebView x:Name="MapWebView"
-                 Grid.Row="0" />
+
+        <WebView x:Name="MapWebView" Grid.Row="0" />
 
         <VerticalStackLayout Grid.Row="1"
-                             Padding="20"
-                             Spacing="8"
+                             Padding="20,16,20,20"
+                             Spacing="6"
                              BackgroundColor="#0B2545">
 
-            <Label Text="Mapa"
-                   FontSize="22"
+            <Label Text="Punto de encuentro"
+                   FontSize="20"
                    FontAttributes="Bold"
-                   TextColor="White" />
+                   TextColor="#EAEAEA" />
 
             <Label Text="{Binding Latitude, StringFormat='Latitud: {0:F6}'}"
-                   TextColor="White"
-                   FontSize="16" />
+                   TextColor="#BDBDBD" FontSize="14" />
 
             <Label Text="{Binding Longitude, StringFormat='Longitud: {0:F6}'}"
-                   TextColor="White"
-                   FontSize="16" />
+                   TextColor="#BDBDBD" FontSize="14" />
 
-            <Label Text="{Binding DurationSeconds, StringFormat='Duración: {0} segundos'}"
-                   TextColor="White"
-                   FontSize="16" />
+            <Label Text="{Binding DurationText, StringFormat='Duración estimada: {0}'}"
+                   TextColor="#D94FA8"
+                   FontSize="15"
+                   FontAttributes="Bold" />
+
         </VerticalStackLayout>
     </Grid>
 </ContentPage>
