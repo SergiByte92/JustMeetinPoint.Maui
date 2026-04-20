@@ -1,4 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using JustMeetinPoint.Maui.Features.Home.Models;
 using JustMeetinPoint.Maui.Features.Home.Services;
 
 namespace JustMeetinPoint.Maui.Features.Home.ViewModels;
@@ -18,9 +20,29 @@ public partial class MapViewModel : ObservableObject
     [ObservableProperty] private int durationSeconds;
     [ObservableProperty] private bool isDefaultMap;
 
-    // Propiedad computada: muestra la duración en formato legible.
-    // Si OTP devuelve 0 (emulador sin GPS real o misma ubicación que destino),
-    // se muestra un mensaje informativo en vez de "0 segundos".
+    [ObservableProperty] private double originLatitude;
+    [ObservableProperty] private double originLongitude;
+
+    [ObservableProperty] private string meetingPointName = "Punto de encuentro";
+    [ObservableProperty] private string addressText = "Dirección no disponible";
+    [ObservableProperty] private string distanceText = "Distancia no disponible";
+    [ObservableProperty] private string fairnessText = "Equilibrio no disponible";
+
+    [ObservableProperty] private bool isSheetExpanded;
+
+    public List<RoutePointModel> RoutePoints { get; private set; } = new();
+
+    public string SummaryText
+    {
+        get
+        {
+            if (IsDefaultMap)
+                return "Sin datos de ruta";
+
+            return $"{DurationText} · {DistanceText}";
+        }
+    }
+
     public string DurationText
     {
         get
@@ -45,10 +67,25 @@ public partial class MapViewModel : ObservableObject
     }
 
     partial void OnDurationSecondsChanged(int value)
-        => OnPropertyChanged(nameof(DurationText));
+    {
+        OnPropertyChanged(nameof(DurationText));
+        OnPropertyChanged(nameof(SummaryText));
+    }
 
     partial void OnIsDefaultMapChanged(bool value)
-        => OnPropertyChanged(nameof(DurationText));
+    {
+        OnPropertyChanged(nameof(DurationText));
+        OnPropertyChanged(nameof(SummaryText));
+    }
+
+    partial void OnDistanceTextChanged(string value)
+        => OnPropertyChanged(nameof(SummaryText));
+
+    [RelayCommand]
+    private void ToggleSheet()
+    {
+        IsSheetExpanded = !IsSheetExpanded;
+    }
 
     public void Load()
     {
@@ -56,23 +93,51 @@ public partial class MapViewModel : ObservableObject
 
         if (_meetingStateService.CurrentResult != null)
         {
-            Latitude = _meetingStateService.CurrentResult.Latitude;
-            Longitude = _meetingStateService.CurrentResult.Longitude;
-            DurationSeconds = _meetingStateService.CurrentResult.DurationSeconds;
+            var result = _meetingStateService.CurrentResult;
+
+            Latitude = result.Latitude;
+            Longitude = result.Longitude;
+            DurationSeconds = result.DurationSeconds;
+
+            OriginLatitude = result.OriginLatitude;
+            OriginLongitude = result.OriginLongitude;
+
+            MeetingPointName = result.MeetingPointName;
+            AddressText = result.AddressText;
+            DistanceText = result.DistanceText;
+            FairnessText = result.FairnessText;
+
+            RoutePoints = result.RoutePoints ?? new List<RoutePointModel>();
+
             IsDefaultMap = false;
 
-            Console.WriteLine($"[MapViewModel] Resultado => {Latitude}, {Longitude}, {DurationSeconds}s");
+            Console.WriteLine($"[MapViewModel] Resultado => destino: {Latitude}, {Longitude}, {DurationSeconds}s");
+            Console.WriteLine($"[MapViewModel] Origen => {OriginLatitude}, {OriginLongitude}");
+            Console.WriteLine($"[MapViewModel] RoutePoints => {RoutePoints.Count}");
         }
         else
         {
             Latitude = 41.3874;
             Longitude = 2.1686;
             DurationSeconds = 0;
+
+            OriginLatitude = 41.3874;
+            OriginLongitude = 2.1686;
+
+            MeetingPointName = "Barcelona";
+            AddressText = "Vista por defecto";
+            DistanceText = "—";
+            FairnessText = "Sin resultado";
+
+            RoutePoints = new List<RoutePointModel>();
+
             IsDefaultMap = true;
 
             Console.WriteLine("[MapViewModel] Sin resultado. Cargando Barcelona por defecto.");
         }
 
         OnPropertyChanged(nameof(DurationText));
+        OnPropertyChanged(nameof(SummaryText));
+        OnPropertyChanged(nameof(RoutePoints));
     }
 }

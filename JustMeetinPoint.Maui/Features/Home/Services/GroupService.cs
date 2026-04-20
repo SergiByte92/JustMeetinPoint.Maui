@@ -167,9 +167,9 @@ public class GroupService : IGroupService
     }
 
     public async Task<MeetingResultModel?> SendLocationAndWaitResultAsync(
-        string groupCode,
-        double latitude,
-        double longitude)
+     string groupCode,
+     double latitude,
+     double longitude)
     {
         return await Task.Run(() =>
         {
@@ -193,16 +193,36 @@ public class GroupService : IGroupService
                 {
                     Latitude = resultLat,
                     Longitude = resultLon,
-                    DurationSeconds = duration
+                    DurationSeconds = duration,
+                    OriginLatitude = latitude,
+                    OriginLongitude = longitude,
+                    MeetingPointName = "Punto de encuentro",
+                    AddressText = "Dirección no disponible",
+                    DistanceText = "Distancia no disponible",
+                    FairnessText = "Resultado calculado correctamente"
                 };
             }
 
             if (duration == -2)
                 throw new InvalidOperationException("Error calculando la ruta en el servidor.");
 
-            // duration == -1: esperamos al resto del grupo con polling.
-            // El servidor envía cabecera al inicio de cada iteración antes
-            // de leer la opción — hay que consumirla en cada ciclo.
+            if (duration == -3)
+            {
+                return new MeetingResultModel
+                {
+                    Latitude = resultLat,
+                    Longitude = resultLon,
+                    DurationSeconds = 0,
+                    OriginLatitude = latitude,
+                    OriginLongitude = longitude,
+                    MeetingPointName = "Punto de encuentro",
+                    AddressText = "No se encontró una ruta válida",
+                    DistanceText = "Distancia no disponible",
+                    FairnessText = "Centroide calculado, pero sin ruta disponible"
+                };
+            }
+
+            // duration == -1 => aún faltan ubicaciones
             while (true)
             {
                 Thread.Sleep(1500);
@@ -213,8 +233,8 @@ public class GroupService : IGroupService
                 if (!sessionValid)
                     throw new InvalidOperationException("La sesión del grupo ha finalizado.");
 
-                SocketTools.receiveInt(socket);  // memberCount (descartado)
-                SocketTools.receiveBool(socket); // hasStarted  (descartado)
+                SocketTools.receiveInt(socket);  // memberCount
+                SocketTools.receiveBool(socket); // hasStarted
 
                 Console.WriteLine("[GroupService] Enviando PollResult...");
                 SocketTools.sendInt(socket, LobbyOptionPollResult);
@@ -231,12 +251,36 @@ public class GroupService : IGroupService
                     {
                         Latitude = resultLat,
                         Longitude = resultLon,
-                        DurationSeconds = duration
+                        DurationSeconds = duration,
+                        OriginLatitude = latitude,
+                        OriginLongitude = longitude,
+                        MeetingPointName = "Punto de encuentro",
+                        AddressText = "Dirección no disponible",
+                        DistanceText = "Distancia no disponible",
+                        FairnessText = "Resultado calculado correctamente"
                     };
                 }
 
                 if (duration == -2)
                     throw new InvalidOperationException("Error calculando la ruta en el servidor.");
+
+                if (duration == -3)
+                {
+                    return new MeetingResultModel
+                    {
+                        Latitude = resultLat,
+                        Longitude = resultLon,
+                        DurationSeconds = 0,
+                        OriginLatitude = latitude,
+                        OriginLongitude = longitude,
+                        MeetingPointName = "Punto de encuentro",
+                        AddressText = "No se encontró una ruta válida",
+                        DistanceText = "Distancia no disponible",
+                        FairnessText = "Centroide calculado, pero sin ruta disponible"
+                    };
+                }
+
+                // si sigue siendo -1, continúa el polling
             }
         });
     }
