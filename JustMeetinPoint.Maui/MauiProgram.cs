@@ -2,9 +2,14 @@
 using JustMeetinPoint.Maui.Features.Auth.Services;
 using JustMeetinPoint.Maui.Features.Auth.ViewModels;
 using JustMeetinPoint.Maui.Features.Auth.Views;
-using JustMeetinPoint.Maui.Features.Home.Services;
-using JustMeetinPoint.Maui.Features.Home.ViewModels;
-using JustMeetinPoint.Maui.Features.Home.Views;
+using JustMeetinPoint.Maui.Features.Dashboard.Views;
+using JustMeetinPoint.Maui.Features.Groups.Services;
+using JustMeetinPoint.Maui.Features.Groups.ViewModels;
+using JustMeetinPoint.Maui.Features.Groups.Views;
+using JustMeetinPoint.Maui.Features.Map.ViewModels;
+using JustMeetinPoint.Maui.Features.Map.Views;
+using JustMeetinPoint.Maui.Features.Profile.Views;
+using JustMeetinPoint.Maui.Features.Shared.Services;
 
 namespace JustMeetinPoint.Maui;
 
@@ -18,39 +23,26 @@ public static class MauiProgram
             .UseMauiApp<App>()
             .UseMauiCommunityToolkit();
 
-        // ── SERVICIOS (Singleton: viven toda la sesión) ──────────────────────
-        // IAuthService gestiona la conexión autenticada (socket de sesión).
-        // Debe ser Singleton para que el socket persista entre navegaciones.
+        // ── SERVICIOS ─────────────────────────────────────────────────────────
         builder.Services.AddSingleton<IAuthService, SocketAuthService>();
-
-        // IGroupService depende de IAuthService para reutilizar el socket.
-        // También Singleton porque comparte estado de sesión.
         builder.Services.AddSingleton<IGroupService, GroupService>();
         builder.Services.AddSingleton<IMeetingStateService, MeetingStateService>();
-        // ── VIEWMODELS (Transient: nueva instancia cada vez que se navega) ───
+
+        // ── VIEWMODELS ────────────────────────────────────────────────────────
         builder.Services.AddTransient<LoginViewModel>();
-        builder.Services.AddTransient<RegisterViewModel>();   // ← AÑADIDO
+        builder.Services.AddTransient<RegisterViewModel>();
         builder.Services.AddTransient<GroupsViewModel>();
         builder.Services.AddTransient<GroupLobbyViewModel>();
         builder.Services.AddTransient<MapViewModel>();
 
-        // ── VIEWS (Transient: ligadas a su ViewModel) ────────────────────────
+        // ── VIEWS ─────────────────────────────────────────────────────────────
         builder.Services.AddTransient<LoginView>();
-        builder.Services.AddTransient<RegisterView>();        // ← AÑADIDO
+        builder.Services.AddTransient<RegisterView>();
         builder.Services.AddTransient<GroupsView>();
         builder.Services.AddTransient<GroupLobbyView>();
         builder.Services.AddTransient<MapView>();
-
-
-
-        
-  
-  
-
-
-        // NOTA: HomeView, MapView y ProfileView no necesitan registro en DI
-        // mientras no reciban ViewModel por constructor. Si en el futuro
-        // añades ViewModels a estas pantallas, regístralas aquí.
+        builder.Services.AddTransient<HomeView>();
+        builder.Services.AddTransient<ProfileView>();
 
         return builder.Build();
     }

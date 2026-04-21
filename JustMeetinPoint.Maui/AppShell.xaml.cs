@@ -1,4 +1,4 @@
-﻿using JustMeetinPoint.Maui.Features.Home.Views;
+﻿using JustMeetinPoint.Maui.Features.Groups.Views;
 
 namespace JustMeetinPoint.Maui;
 

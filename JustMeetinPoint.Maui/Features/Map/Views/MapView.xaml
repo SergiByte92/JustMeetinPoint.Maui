@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="JustMeetinPoint.Maui.Features.Map.Views.MapView"
+    Title="Mapa"
+    BackgroundColor="#0B2545">
+
+    <Grid RowDefinitions="*">
+
+        <!-- MAPA FULL SCREEN -->
+        <WebView x:Name="MapWebView" />
+
+        <!-- HEADER SUPERIOR -->
+        <Grid
+            Padding="16,50,16,0"
+            VerticalOptions="Start"
+            ColumnDefinitions="*,Auto">
+
+            <Border
+                BackgroundColor="#CC0B2545"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 16"
+                Padding="14,10">
+                <Label
+                    Text="{Binding MeetingPointName}"
+                    FontSize="16"
+                    FontAttributes="Bold"
+                    TextColor="#FFFFFF"
+                    LineBreakMode="TailTruncation" />
+            </Border>
+
+            <Border
+                Grid.Column="1"
+                Margin="12,0,0,0"
+                BackgroundColor="#CC0B2545"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 16"
+                Padding="12,10">
+                <Label
+                    Text="{Binding DurationText}"
+                    FontSize="14"
+                    FontAttributes="Bold"
+                    TextColor="#D94FA8" />
+            </Border>
+        </Grid>
+
+        <!-- BOTTOM SHEET -->
+        <Border
+            x:Name="BottomSheet"
+            VerticalOptions="End"
+            BackgroundColor="#F8FAFC"
+            StrokeThickness="0"
+            StrokeShape="RoundRectangle 24,24,0,0"
+            Padding="18,12,18,22"
+            HeightRequest="360"
+            TranslationY="130">
+
+            <Border.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="OnBottomSheetPanUpdated" />
+            </Border.GestureRecognizers>
+
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+
+                <!-- HANDLE -->
+                <Grid Grid.Row="0" Margin="0,0,0,12">
+                    <Border
+                        HorizontalOptions="Center"
+                        WidthRequest="52"
+                        HeightRequest="6"
+                        BackgroundColor="#CBD5E1"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 999" />
+                </Grid>
+
+                <!-- RESUMEN -->
+                <VerticalStackLayout Grid.Row="1" Spacing="3">
+                    <Label
+                        Text="{Binding MeetingPointName}"
+                        FontSize="20"
+                        FontAttributes="Bold"
+                        TextColor="#0B2545" />
+
+                    <Label
+                        Text="{Binding SummaryText}"
+                        FontSize="14"
+                        TextColor="#475569" />
+                </VerticalStackLayout>
+
+                <!-- MÉTRICAS -->
+                <Grid
+                    Grid.Row="2"
+                    Margin="0,16,0,0"
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="12">
+
+                    <Border
+                        Grid.Column="0"
+                        BackgroundColor="#EEF2FF"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label
+                                Text="Tiempo estimado"
+                                FontSize="12"
+                                TextColor="#64748B" />
+                            <Label
+                                Text="{Binding DurationText}"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#0B2545" />
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Border
+                        Grid.Column="1"
+                        BackgroundColor="#EEF2FF"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="14">
+                        <VerticalStackLayout Spacing="4">
+                            <Label
+                                Text="Distancia"
+                                FontSize="12"
+                                TextColor="#64748B" />
+                            <Label
+                                Text="{Binding DistanceText}"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#0B2545" />
+                        </VerticalStackLayout>
+                    </Border>
+                </Grid>
+
+                <!-- DETALLE EXPANDIDO -->
+                <Border
+                    x:Name="ExpandedContent"
+                    Grid.Row="3"
+                    Margin="0,16,0,0"
+                    BackgroundColor="#F1F5F9"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 18"
+                    Padding="14"
+                    IsVisible="False">
+
+                    <VerticalStackLayout Spacing="10">
+                        <VerticalStackLayout Spacing="2">
+                            <Label
+                                Text="Dirección"
+                                FontSize="12"
+                                TextColor="#64748B" />
+                            <Label
+                                Text="{Binding AddressText}"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                TextColor="#0B2545" />
+                        </VerticalStackLayout>
+
+                        <VerticalStackLayout Spacing="2">
+                            <Label
+                                Text="Equilibrio grupal"
+                                FontSize="12"
+                                TextColor="#64748B" />
+                            <Label
+                                Text="{Binding FairnessText}"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                TextColor="#0B2545" />
+                        </VerticalStackLayout>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+        </Border>
+    </Grid>
+</ContentPage>

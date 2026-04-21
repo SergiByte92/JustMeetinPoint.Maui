@@ -51,10 +51,10 @@
 		<Compile Update="Features\Auth\Views\LoginView.xaml.cs">
 			<DependentUpon>LoginView.xaml</DependentUpon>
 		</Compile>
-		<Compile Update="Features\Home\Views\GroupLobbyView.xaml.cs">
+		<Compile Update="Features\Groups\Views\GroupLobbyView.xaml.cs">
 		  <DependentUpon>GroupLobbyView.xaml</DependentUpon>
 		</Compile>
-		<Compile Update="Features\Home\Views\MapView.xaml.cs">
+		<Compile Update="Features\Map\Views\MapView.xaml.cs">
 		  <DependentUpon>MapView.xaml</DependentUpon>
 		</Compile>
 	</ItemGroup>
@@ -68,23 +68,23 @@
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 
-		<MauiXaml Update="Features\Home\Views\GroupLobbyView.xaml">
+		<MauiXaml Update="Features\Groups\Views\GroupLobbyView.xaml">
 		  <Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 
-		<MauiXaml Update="Features\Home\Views\GroupsView.xaml">
+		<MauiXaml Update="Features\Groups\Views\GroupsView.xaml">
 		  <Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 
-		<MauiXaml Update="Features\Home\Views\HomeView.xaml">
+		<MauiXaml Update="Features\Dashboard\Views\HomeView.xaml">
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 
-		<MauiXaml Update="Features\Home\Views\MapView.xaml">
+		<MauiXaml Update="Features\Map\Views\MapView.xaml">
 		  <Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 
-		<MauiXaml Update="Features\Home\Views\ProfileView.xaml">
+		<MauiXaml Update="Features\Profile\Views\ProfileView.xaml">
 		  <Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 	</ItemGroup>
