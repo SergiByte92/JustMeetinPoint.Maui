@@ -4,198 +4,229 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="JustMeetinPoint.Maui.Features.Home.Views.HomeView"
     Title="Inicio"
-    BackgroundColor="#F3F6FB">
+    BackgroundColor="#F8F9FA">
 
     <ScrollView>
-        <VerticalStackLayout Padding="20,24,20,32"
-                             Spacing="22">
+        <VerticalStackLayout Spacing="0">
 
-            <!-- HEADER -->
-            <VerticalStackLayout Spacing="6">
-                <Label Text="Inicio"
-                       FontSize="28"
-                       FontAttributes="Bold"
-                       TextColor="#1F1F1F" />
+            <!-- HERO SUPERIOR -->
+            <Border
+                BackgroundColor="#FFFFFF"
+                StrokeThickness="0"
+                Padding="20,18,20,18">
 
-                <Label Text="Descubre ideas para quedar y organiza tu próximo punto de encuentro."
-                       FontSize="15"
-                       TextColor="#5F6368" />
-            </VerticalStackLayout>
+                <VerticalStackLayout Spacing="4">
+                    <Label
+                        Text="Hola, Sergi 👋"
+                        FontSize="24"
+                        FontAttributes="Bold"
+                        TextColor="#202124" />
 
-            <!-- HERO / CTA PRINCIPAL -->
-            <Border BackgroundColor="#FFFFFF"
-                    Stroke="#E3E7EE"
-                    StrokeThickness="1"
-                    StrokeShape="RoundRectangle 24"
-                    Padding="20">
-
-                <VerticalStackLayout Spacing="14">
-                    <Label Text="Organiza una nueva quedada"
-                           FontSize="22"
-                           FontAttributes="Bold"
-                           TextColor="#1F1F1F" />
-
-                    <Label Text="Crea un grupo, comparte ubicaciones y encuentra el punto más justo para todos."
-                           FontSize="14"
-                           TextColor="#5F6368" />
-
-                    <Button Text="Crear grupo"
-                            HeightRequest="52"
-                            BackgroundColor="#1A73E8"
-                            TextColor="White"
-                            CornerRadius="14" />
+                    <Label
+                        Text="¿Dónde quedamos hoy?"
+                        FontSize="14"
+                        TextColor="#5F6368" />
                 </VerticalStackLayout>
             </Border>
 
-            <!-- SUGERENCIAS -->
-            <VerticalStackLayout Spacing="12">
-                <Label Text="Sugerencias para hoy"
-                       FontSize="20"
-                       FontAttributes="Bold"
-                       TextColor="#1F1F1F" />
+            <!-- CTA PRINCIPAL -->
+            <Border
+                Margin="12,12,12,0"
+                BackgroundColor="#1A73E8"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 16"
+                Padding="18">
 
-                <Label Text="Contenido preparado para mostrar actividades, ideas de planes o recomendaciones cercanas."
-                       FontSize="14"
-                       TextColor="#5F6368" />
+                <Grid ColumnDefinitions="*,Auto">
+                    <VerticalStackLayout Spacing="6">
+                        <Label
+                            Text="Organiza una nueva quedada"
+                            FontSize="16"
+                            FontAttributes="Bold"
+                            TextColor="#FFFFFF" />
 
-                <ScrollView Orientation="Horizontal">
-                    <HorizontalStackLayout Spacing="14">
+                        <Label
+                            Text="Crea un grupo, comparte el código y encuentra el punto más justo."
+                            FontSize="12"
+                            TextColor="#DCE8FF" />
 
-                        <Border WidthRequest="240"
-                                BackgroundColor="#FFFFFF"
-                                Stroke="#E3E7EE"
-                                StrokeThickness="1"
-                                StrokeShape="RoundRectangle 20"
-                                Padding="16">
-                            <VerticalStackLayout Spacing="10">
-                                <Border BackgroundColor="#E8F0FE"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 14"
-                                        Padding="10,6"
-                                        HorizontalOptions="Start">
-                                    <Label Text="Cafeterías"
-                                           FontSize="12"
-                                           FontAttributes="Bold"
-                                           TextColor="#1A73E8" />
-                                </Border>
+                        <Button
+                            Text="Crear grupo"
+                            Margin="0,8,0,0"
+                            WidthRequest="130"
+                            HeightRequest="40"
+                            BackgroundColor="#FFFFFF"
+                            TextColor="#1A73E8"
+                            FontAttributes="Bold"
+                            CornerRadius="20"
+                            HorizontalOptions="Start" />
+                    </VerticalStackLayout>
 
-                                <Label Text="Ideas para una quedada tranquila"
-                                       FontSize="17"
-                                       FontAttributes="Bold"
-                                       TextColor="#1F1F1F" />
+                    <Label
+                        Grid.Column="1"
+                        Text="📍"
+                        FontSize="34"
+                        VerticalOptions="Center"
+                        Opacity="0.45"
+                        TextColor="#FFFFFF"
+                        Margin="12,0,0,0" />
+                </Grid>
+            </Border>
 
-                                <Label Text="Espacios cómodos para conversar, trabajar o esperar a que llegue todo el grupo."
-                                       FontSize="13"
-                                       TextColor="#5F6368"
-                                       LineBreakMode="WordWrap" />
-                            </VerticalStackLayout>
-                        </Border>
+            <!-- CABECERA SUGERENCIAS -->
+            <Grid
+                Padding="16,18,16,8"
+                ColumnDefinitions="*,Auto">
 
-                        <Border WidthRequest="240"
-                                BackgroundColor="#FFFFFF"
-                                Stroke="#E3E7EE"
-                                StrokeThickness="1"
-                                StrokeShape="RoundRectangle 20"
-                                Padding="16">
-                            <VerticalStackLayout Spacing="10">
-                                <Border BackgroundColor="#E8F0FE"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 14"
-                                        Padding="10,6"
-                                        HorizontalOptions="Start">
-                                    <Label Text="Planes"
-                                           FontSize="12"
-                                           FontAttributes="Bold"
-                                           TextColor="#1A73E8" />
-                                </Border>
+                <Label
+                    Text="Sugerencias para hoy"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    TextColor="#202124" />
 
-                                <Label Text="Actividades para grupos pequeños"
-                                       FontSize="17"
-                                       FontAttributes="Bold"
-                                       TextColor="#1F1F1F" />
+                <Label
+                    Grid.Column="1"
+                    Text="Ver más"
+                    FontSize="12"
+                    TextColor="#1A73E8"
+                    VerticalOptions="End" />
+            </Grid>
 
-                                <Label Text="Propuestas que encajan bien con encuentros rápidos o planes espontáneos."
-                                       FontSize="13"
-                                       TextColor="#5F6368"
-                                       LineBreakMode="WordWrap" />
-                            </VerticalStackLayout>
-                        </Border>
+            <!-- CHIPS -->
+            <ScrollView
+                Orientation="Horizontal"
+                Margin="12,0,0,0"
+                HorizontalScrollBarVisibility="Never">
 
-                        <Border WidthRequest="240"
-                                BackgroundColor="#FFFFFF"
-                                Stroke="#E3E7EE"
-                                StrokeThickness="1"
-                                StrokeShape="RoundRectangle 20"
-                                Padding="16">
-                            <VerticalStackLayout Spacing="10">
-                                <Border BackgroundColor="#E8F0FE"
-                                        StrokeThickness="0"
-                                        StrokeShape="RoundRectangle 14"
-                                        Padding="10,6"
-                                        HorizontalOptions="Start">
-                                    <Label Text="Quedadas"
-                                           FontSize="12"
-                                           FontAttributes="Bold"
-                                           TextColor="#1A73E8" />
-                                </Border>
+                <HorizontalStackLayout Spacing="8" Padding="0,0,12,0">
 
-                                <Label Text="Sugerencias para el punto final"
-                                       FontSize="17"
-                                       FontAttributes="Bold"
-                                       TextColor="#1F1F1F" />
-
-                                <Label Text="Más adelante aquí podrás destacar lugares o ideas compatibles con el punto calculado."
-                                       FontSize="13"
-                                       TextColor="#5F6368"
-                                       LineBreakMode="WordWrap" />
-                            </VerticalStackLayout>
-                        </Border>
-
-                    </HorizontalStackLayout>
-                </ScrollView>
-            </VerticalStackLayout>
-
-            <!-- BLOQUE NOTICIAS / ACTIVIDAD -->
-            <VerticalStackLayout Spacing="12">
-                <Label Text="Ideas de quedada"
-                       FontSize="20"
-                       FontAttributes="Bold"
-                       TextColor="#1F1F1F" />
-
-                <Border BackgroundColor="#FFFFFF"
-                        Stroke="#E3E7EE"
+                    <Border
+                        BackgroundColor="#E8F0FE"
+                        Stroke="#1A73E8"
                         StrokeThickness="1"
                         StrokeShape="RoundRectangle 20"
-                        Padding="16">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Text="Tarde de café y paseo"
-                               FontSize="17"
-                               FontAttributes="Bold"
-                               TextColor="#1F1F1F" />
-                        <Label Text="Una combinación sencilla para grupos que quieren quedar en un punto céntrico y moverse poco después."
-                               FontSize="13"
-                               TextColor="#5F6368"
-                               LineBreakMode="WordWrap" />
-                    </VerticalStackLayout>
-                </Border>
+                        Padding="14,8">
+                        <Label
+                            Text="🍕 Comer"
+                            FontSize="12"
+                            TextColor="#1A73E8"
+                            FontAttributes="Bold" />
+                    </Border>
 
-                <Border BackgroundColor="#FFFFFF"
-                        Stroke="#E3E7EE"
+                    <Border
+                        BackgroundColor="#FFFFFF"
+                        Stroke="#E8EAED"
                         StrokeThickness="1"
                         StrokeShape="RoundRectangle 20"
-                        Padding="16">
-                    <VerticalStackLayout Spacing="8">
-                        <Label Text="Encuentros rápidos después de clase o trabajo"
-                               FontSize="17"
-                               FontAttributes="Bold"
-                               TextColor="#1F1F1F" />
-                        <Label Text="Pensado para reuniones informales donde importa llegar fácil y perder poco tiempo en desplazamientos."
-                               FontSize="13"
-                               TextColor="#5F6368"
-                               LineBreakMode="WordWrap" />
+                        Padding="14,8">
+                        <Label
+                            Text="☕ Café"
+                            FontSize="12"
+                            TextColor="#202124" />
+                    </Border>
+
+                    <Border
+                        BackgroundColor="#FFFFFF"
+                        Stroke="#E8EAED"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 20"
+                        Padding="14,8">
+                        <Label
+                            Text="🎭 Ocio"
+                            FontSize="12"
+                            TextColor="#202124" />
+                    </Border>
+
+                    <Border
+                        BackgroundColor="#FFFFFF"
+                        Stroke="#E8EAED"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 20"
+                        Padding="14,8">
+                        <Label
+                            Text="🏃 Deporte"
+                            FontSize="12"
+                            TextColor="#202124" />
+                    </Border>
+
+                </HorizontalStackLayout>
+            </ScrollView>
+
+            <!-- CARD 1 -->
+            <Border
+                Margin="12,12,12,0"
+                BackgroundColor="#FFFFFF"
+                Stroke="#E8EAED"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 14"
+                Padding="14">
+
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Border
+                        WidthRequest="40"
+                        HeightRequest="40"
+                        BackgroundColor="#E8F0FE"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12">
+                        <Label
+                            Text="🍕"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"
+                            FontSize="18" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                        <Label
+                            Text="Actividades para grupos pequeños"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#202124" />
+
+                        <Label
+                            Text="Propuestas para encuentros rápidos"
+                            FontSize="11"
+                            TextColor="#5F6368" />
                     </VerticalStackLayout>
-                </Border>
-            </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- CARD 2 -->
+            <Border
+                Margin="12,8,12,20"
+                BackgroundColor="#FFFFFF"
+                Stroke="#E8EAED"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 14"
+                Padding="14">
+
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+                    <Border
+                        WidthRequest="40"
+                        HeightRequest="40"
+                        BackgroundColor="#E6F4EA"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 12">
+                        <Label
+                            Text="📍"
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"
+                            FontSize="18" />
+                    </Border>
+
+                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                        <Label
+                            Text="Sugerencia de punto final"
+                            FontSize="13"
+                            FontAttributes="Bold"
+                            TextColor="#202124" />
+
+                        <Label
+                            Text="Más adelante sugerirá lugares cercanos al punto calculado"
+                            FontSize="11"
+                            TextColor="#5F6368" />
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
 
         </VerticalStackLayout>
     </ScrollView>

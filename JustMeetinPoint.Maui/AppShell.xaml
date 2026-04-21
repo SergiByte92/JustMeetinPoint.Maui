@@ -6,27 +6,32 @@
     xmlns:authViews="clr-namespace:JustMeetinPoint.Maui.Features.Auth.Views"
     xmlns:homeViews="clr-namespace:JustMeetinPoint.Maui.Features.Home.Views"
     Shell.FlyoutBehavior="Disabled"
-    Shell.BackgroundColor="#0B2545"
-    Shell.ForegroundColor="#EAEAEA"
-    Shell.TitleColor="#EAEAEA"
-    Shell.UnselectedColor="#BDBDBD"
-    Shell.TabBarBackgroundColor="#061726"
-    Shell.TabBarForegroundColor="#D94FA8"
-    Shell.TabBarTitleColor="#EAEAEA"
-    Shell.TabBarUnselectedColor="#BDBDBD"
+    Shell.BackgroundColor="#FFFFFF"
+    Shell.ForegroundColor="#202124"
+    Shell.TitleColor="#202124"
+    Shell.UnselectedColor="#9AA0A6"
+    Shell.TabBarBackgroundColor="#FFFFFF"
+    Shell.TabBarForegroundColor="#1A73E8"
+    Shell.TabBarTitleColor="#202124"
+    Shell.TabBarUnselectedColor="#9AA0A6"
     Shell.NavBarHasShadow="True">
 
     <ShellContent
         Title="Login"
         ContentTemplate="{DataTemplate authViews:LoginView}"
-        Route="login" />
+        Route="login"
+        Shell.TabBarIsVisible="False"
+        Shell.NavBarIsVisible="False" />
 
     <ShellContent
         Title="Register"
         ContentTemplate="{DataTemplate authViews:RegisterView}"
-        Route="register" />
+        Route="register"
+        Shell.TabBarIsVisible="False"
+        Shell.NavBarIsVisible="False" />
 
     <TabBar Route="main">
+
         <ShellContent
             Title="Inicio"
             Icon="home.png"
@@ -34,7 +39,7 @@
             Route="home" />
 
         <ShellContent
-            Title="Grupo"
+            Title="Quedadas"
             Icon="group.png"
             ContentTemplate="{DataTemplate homeViews:GroupsView}"
             Route="groups" />
@@ -50,5 +55,6 @@
             Icon="profile.png"
             ContentTemplate="{DataTemplate homeViews:ProfileView}"
             Route="profile" />
+
     </TabBar>
 </Shell>
