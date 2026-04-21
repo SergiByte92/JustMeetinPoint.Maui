@@ -53,9 +53,14 @@
             StrokeThickness="0"
             StrokeShape="RoundRectangle 24,24,0,0"
             Padding="18,12,18,22"
-            HeightRequest="230">
+            HeightRequest="360"
+            TranslationY="130">
 
-            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+            <Border.GestureRecognizers>
+                <PanGestureRecognizer PanUpdated="OnBottomSheetPanUpdated" />
+            </Border.GestureRecognizers>
+
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto">
 
                 <!-- HANDLE -->
                 <Grid Grid.Row="0" Margin="0,0,0,12">
@@ -65,11 +70,7 @@
                         HeightRequest="6"
                         BackgroundColor="#CBD5E1"
                         StrokeThickness="0"
-                        StrokeShape="RoundRectangle 999">
-                        <Border.GestureRecognizers>
-                            <TapGestureRecognizer Command="{Binding ToggleSheetCommand}" />
-                        </Border.GestureRecognizers>
-                    </Border>
+                        StrokeShape="RoundRectangle 999" />
                 </Grid>
 
                 <!-- RESUMEN -->
@@ -100,8 +101,15 @@
                         StrokeShape="RoundRectangle 16"
                         Padding="14">
                         <VerticalStackLayout Spacing="4">
-                            <Label Text="Tiempo estimado" FontSize="12" TextColor="#64748B" />
-                            <Label Text="{Binding DurationText}" FontSize="18" FontAttributes="Bold" TextColor="#0B2545" />
+                            <Label
+                                Text="Tiempo estimado"
+                                FontSize="12"
+                                TextColor="#64748B" />
+                            <Label
+                                Text="{Binding DurationText}"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#0B2545" />
                         </VerticalStackLayout>
                     </Border>
 
@@ -112,8 +120,15 @@
                         StrokeShape="RoundRectangle 16"
                         Padding="14">
                         <VerticalStackLayout Spacing="4">
-                            <Label Text="Distancia" FontSize="12" TextColor="#64748B" />
-                            <Label Text="{Binding DistanceText}" FontSize="18" FontAttributes="Bold" TextColor="#0B2545" />
+                            <Label
+                                Text="Distancia"
+                                FontSize="12"
+                                TextColor="#64748B" />
+                            <Label
+                                Text="{Binding DistanceText}"
+                                FontSize="18"
+                                FontAttributes="Bold"
+                                TextColor="#0B2545" />
                         </VerticalStackLayout>
                     </Border>
                 </Grid>
@@ -131,26 +146,30 @@
 
                     <VerticalStackLayout Spacing="10">
                         <VerticalStackLayout Spacing="2">
-                            <Label Text="Dirección" FontSize="12" TextColor="#64748B" />
-                            <Label Text="{Binding AddressText}" FontSize="15" FontAttributes="Bold" TextColor="#0B2545" />
+                            <Label
+                                Text="Dirección"
+                                FontSize="12"
+                                TextColor="#64748B" />
+                            <Label
+                                Text="{Binding AddressText}"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                TextColor="#0B2545" />
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Spacing="2">
-                            <Label Text="Equilibrio grupal" FontSize="12" TextColor="#64748B" />
-                            <Label Text="{Binding FairnessText}" FontSize="15" FontAttributes="Bold" TextColor="#0B2545" />
+                            <Label
+                                Text="Equilibrio grupal"
+                                FontSize="12"
+                                TextColor="#64748B" />
+                            <Label
+                                Text="{Binding FairnessText}"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                TextColor="#0B2545" />
                         </VerticalStackLayout>
                     </VerticalStackLayout>
                 </Border>
-
-                <Button
-                    Grid.Row="4"
-                    Margin="0,16,0,0"
-                    Text="Ver detalle"
-                    Command="{Binding ToggleSheetCommand}"
-                    BackgroundColor="#0B2545"
-                    TextColor="White"
-                    CornerRadius="14"
-                    HeightRequest="52" />
             </Grid>
         </Border>
     </Grid>

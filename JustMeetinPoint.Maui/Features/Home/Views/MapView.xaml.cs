@@ -1,5 +1,6 @@
 using JustMeetinPoint.Maui.Features.Home.Models;
 using JustMeetinPoint.Maui.Features.Home.ViewModels;
+using System.ComponentModel;
 using System.Globalization;
 using System.Text;
 
@@ -9,28 +10,73 @@ public partial class MapView : ContentPage
 {
     private readonly MapViewModel _viewModel;
 
+    private bool _isLoaded;
+    private bool _eventsSubscribed;
+    private bool _isAnimating;
+    private double _panStartTranslationY;
+
+    private const double ExpandedTranslationY = 0;
+    private const double CollapsedTranslationY = 332;
+    private const uint SheetAnimationDuration = 220;
+
     public MapView(MapViewModel viewModel)
     {
         InitializeComponent();
-        BindingContext = viewModel;
+
         _viewModel = viewModel;
-        _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+        BindingContext = _viewModel;
     }
 
-    protected override void OnAppearing()
+    protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        _viewModel.Load();
-        RenderMap();
-        UpdateBottomSheet(false);
+        SubscribeEvents();
+
+        if (!_isLoaded)
+        {
+            await _viewModel.Load();
+            RenderMap();
+            await UpdateBottomSheet(animated: false);
+            _isLoaded = true;
+            return;
+        }
+
+        await UpdateBottomSheet(animated: false);
     }
 
-    private void ViewModel_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    protected override void OnDisappearing()
+    {
+        base.OnDisappearing();
+        UnsubscribeEvents();
+    }
+
+    private void SubscribeEvents()
+    {
+        if (_eventsSubscribed)
+            return;
+
+        _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+        _eventsSubscribed = true;
+    }
+
+    private void UnsubscribeEvents()
+    {
+        if (!_eventsSubscribed)
+            return;
+
+        _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
+        _eventsSubscribed = false;
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MapViewModel.IsSheetExpanded))
         {
-            MainThread.BeginInvokeOnMainThread(async () => await UpdateBottomSheet(true));
+            MainThread.BeginInvokeOnMainThread(async () =>
+            {
+                await UpdateBottomSheet(animated: true);
+            });
         }
     }
 
@@ -41,16 +87,9 @@ public partial class MapView : ContentPage
         string originLat = _viewModel.OriginLatitude.ToString(CultureInfo.InvariantCulture);
         string originLon = _viewModel.OriginLongitude.ToString(CultureInfo.InvariantCulture);
 
-        string routeJsArray;
-
-        if (_viewModel.RoutePoints != null && _viewModel.RoutePoints.Count > 1)
-        {
-            routeJsArray = BuildRoutePointsJsArray(_viewModel.RoutePoints);
-        }
-        else
-        {
-            routeJsArray = $"[[{originLat},{originLon}],[{destinationLat},{destinationLon}]]";
-        }
+        string routeJsArray = _viewModel.RoutePoints is not null && _viewModel.RoutePoints.Count > 1
+            ? BuildRoutePointsJsArray(_viewModel.RoutePoints)
+            : $"[[{originLat},{originLon}],[{destinationLat},{destinationLon}]]";
 
         string html = $@"
 <!DOCTYPE html>
@@ -76,7 +115,9 @@ public partial class MapView : ContentPage
         var origin = [{originLat}, {originLon}];
         var routePoints = {routeJsArray};
 
-        var map = L.map('map');
+        var map = L.map('map', {{
+            zoomControl: false
+        }});
 
         L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
             maxZoom: 19,
@@ -105,10 +146,11 @@ public partial class MapView : ContentPage
 
     private static string BuildRoutePointsJsArray(List<RoutePointModel> points)
     {
-        if (points == null || points.Count == 0)
+        if (points is null || points.Count == 0)
             return "[]";
 
         var sb = new StringBuilder("[");
+
         for (int i = 0; i < points.Count; i++)
         {
             string lat = points[i].Latitude.ToString(CultureInfo.InvariantCulture);
@@ -126,41 +168,74 @@ public partial class MapView : ContentPage
 
     private async Task UpdateBottomSheet(bool animated)
     {
-        ExpandedContent.IsVisible = _viewModel.IsSheetExpanded;
+        if (_isAnimating)
+            return;
 
-        double targetHeight = _viewModel.IsSheetExpanded ? 360 : 230;
-
-        if (animated)
+        try
         {
-            await BottomSheet.HeightRequestTo(targetHeight, 220, Easing.CubicOut);
+            _isAnimating = true;
+
+            double targetTranslation = _viewModel.IsSheetExpanded
+                ? ExpandedTranslationY
+                : CollapsedTranslationY;
+
+            if (_viewModel.IsSheetExpanded)
+            {
+                ExpandedContent.IsVisible = true;
+            }
+
+            if (animated)
+            {
+                await BottomSheet.TranslateTo(0, targetTranslation, SheetAnimationDuration, Easing.CubicOut);
+            }
+            else
+            {
+                BottomSheet.TranslationY = targetTranslation;
+            }
+
+            if (!_viewModel.IsSheetExpanded)
+            {
+                ExpandedContent.IsVisible = false;
+            }
         }
-        else
+        finally
         {
-            BottomSheet.HeightRequest = targetHeight;
+            _isAnimating = false;
         }
     }
-}
 
-public static class VisualElementExtensions
-{
-    public static Task HeightRequestTo(this VisualElement element, double to, uint length, Easing easing)
+    private async void OnBottomSheetPanUpdated(object? sender, PanUpdatedEventArgs e)
     {
-        var taskCompletionSource = new TaskCompletionSource<bool>();
-        double from = element.HeightRequest < 0 ? element.Height : element.HeightRequest;
+        if (_isAnimating)
+            return;
 
-        var animation = new Animation(
-            callback: value => element.HeightRequest = value,
-            start: from,
-            end: to);
+        switch (e.StatusType)
+        {
+            case GestureStatus.Started:
+                _panStartTranslationY = BottomSheet.TranslationY;
+                break;
 
-        animation.Commit(
-            owner: element,
-            name: "HeightRequestTo",
-            rate: 16,
-            length: length,
-            easing: easing,
-            finished: (_, canceled) => taskCompletionSource.SetResult(!canceled));
+            case GestureStatus.Running:
+                double nextTranslation = _panStartTranslationY + e.TotalY;
 
-        return taskCompletionSource.Task;
+                nextTranslation = Math.Max(ExpandedTranslationY, nextTranslation);
+                nextTranslation = Math.Min(CollapsedTranslationY, nextTranslation);
+
+                if (nextTranslation < CollapsedTranslationY)
+                {
+                    ExpandedContent.IsVisible = true;
+                }
+
+                BottomSheet.TranslationY = nextTranslation;
+                break;
+
+            case GestureStatus.Completed:
+            case GestureStatus.Canceled:
+                bool shouldExpand = BottomSheet.TranslationY < (CollapsedTranslationY / 2);
+
+                _viewModel.IsSheetExpanded = shouldExpand;
+                await UpdateBottomSheet(animated: true);
+                break;
+        }
     }
 }
