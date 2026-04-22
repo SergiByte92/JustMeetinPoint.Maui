@@ -54,11 +54,36 @@ public partial class GroupLobbyViewModel : ObservableObject
     public bool CanStartGroup => IsCurrentUserHost && !HasStarted;
 
     public string StatusText => HasStarted
-        ? "El grupo ya ha iniciado."
+        ? "Calculando punto de encuentro..."
         : "Esperando a más participantes...";
 
     public string ParticipantsText =>
         $"{MemberCount} participante{(MemberCount == 1 ? "" : "s")} conectado{(MemberCount == 1 ? "" : "s")}";
+
+    // ── Stepper / estado de proceso ─────────────────────────────────────────
+    public int CurrentStep => HasStarted ? 3 : 2;
+
+    public bool IsCalculating => HasStarted;
+
+    public string Step1Color => CurrentStep >= 1 ? "#1F5FBF" : "#D9DEE5";
+    public string Step2Color => CurrentStep >= 2 ? "#1F5FBF" : "#D9DEE5";
+    public string Step3Color => CurrentStep >= 3 ? "#1F5FBF" : "#D9DEE5";
+
+    public string LobbyTitle => HasStarted ? "Calculando punto de encuentro" : "Sala del grupo";
+
+    public string LobbySubtitle => HasStarted
+        ? "Estamos calculando la mejor opción para todos."
+        : "Comparte el código mientras llegan los participantes.";
+
+    public string PrimaryStatusText => HasStarted
+        ? "Cálculo en curso"
+        : ParticipantsText;
+
+    public string SecondaryStatusText => HasStarted
+        ? "Esto puede tardar unos segundos."
+        : "Esperando a más participantes...";
+
+    public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
 
     partial void OnGroupCodeChanged(string value)
     {
@@ -71,12 +96,28 @@ public partial class GroupLobbyViewModel : ObservableObject
     partial void OnMemberCountChanged(int value)
     {
         OnPropertyChanged(nameof(ParticipantsText));
+        OnPropertyChanged(nameof(PrimaryStatusText));
     }
 
     partial void OnHasStartedChanged(bool value)
     {
         OnPropertyChanged(nameof(StatusText));
         OnPropertyChanged(nameof(CanStartGroup));
+
+        OnPropertyChanged(nameof(CurrentStep));
+        OnPropertyChanged(nameof(IsCalculating));
+        OnPropertyChanged(nameof(Step1Color));
+        OnPropertyChanged(nameof(Step2Color));
+        OnPropertyChanged(nameof(Step3Color));
+        OnPropertyChanged(nameof(LobbyTitle));
+        OnPropertyChanged(nameof(LobbySubtitle));
+        OnPropertyChanged(nameof(PrimaryStatusText));
+        OnPropertyChanged(nameof(SecondaryStatusText));
+    }
+
+    partial void OnErrorMessageChanged(string value)
+    {
+        OnPropertyChanged(nameof(HasError));
     }
 
     [RelayCommand]
@@ -200,6 +241,7 @@ public partial class GroupLobbyViewModel : ObservableObject
         if (permission != PermissionStatus.Granted)
             throw new InvalidOperationException("Permiso de ubicación denegado.");
 
+        // Da margen al emulador / dispositivo para estabilizar ubicación si acaba de cambiar.
         await Task.Delay(1500);
 
         Location? location = await Geolocation.Default.GetLocationAsync(
@@ -227,6 +269,9 @@ public partial class GroupLobbyViewModel : ObservableObject
         Console.WriteLine($"[Lobby] Resultado recibido: {result.Latitude}, {result.Longitude}, {result.DurationSeconds}");
 
         _meetingStateService.CurrentResult = result;
+
+        // Pequeña pausa UX para que el usuario perciba el paso 3 antes de navegar al mapa.
+        await Task.Delay(1800);
 
         await Shell.Current.GoToAsync("//main/map");
     }

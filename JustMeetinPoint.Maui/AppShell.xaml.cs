@@ -8,6 +8,7 @@ public partial class AppShell : Shell
     {
         InitializeComponent();
 
-        Routing.RegisterRoute(nameof(GroupLobbyView), typeof(GroupLobbyView));
+        Routing.RegisterRoute("create-group", typeof(CreateGroupView));
+        Routing.RegisterRoute("group-lobby", typeof(GroupLobbyView));
     }
 }

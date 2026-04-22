@@ -25,17 +25,21 @@ public class GroupService : IGroupService
         _authService = authService;
     }
 
-    public async Task<GroupLobbyModel> CreateGroupAsync()
+    public async Task<GroupLobbyModel> CreateGroupAsync(
+        string name,
+        string description,
+        string method,
+        string category)
     {
         return await Task.Run(() =>
         {
             Socket socket = GetAuthenticatedSocket();
 
             SocketTools.sendInt(socket, MainGroupCreateGroup);
-            SocketTools.sendString("Grupo", socket);
-            SocketTools.sendString("General", socket);
-            SocketTools.sendString("Grupo creado desde la app", socket);
-            SocketTools.sendString("centroid", socket);
+            SocketTools.sendString(name, socket);
+            SocketTools.sendString(category, socket);
+            SocketTools.sendString(description, socket);
+            SocketTools.sendString(method, socket);
 
             bool success = SocketTools.receiveBool(socket);
             if (!success)
@@ -59,7 +63,6 @@ public class GroupService : IGroupService
             };
         });
     }
-
     public async Task<GroupLobbyModel> JoinGroupAsync(string groupCode)
     {
         return await Task.Run(() =>

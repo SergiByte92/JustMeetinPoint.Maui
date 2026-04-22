@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Class="JustMeetinPoint.Maui.Features.Groups.Views.CreateGroupView"
+    Title="Crear grupo"
+    BackgroundColor="#F6F7F9"
+    Shell.TabBarIsVisible="False">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView Grid.Row="0">
+            <VerticalStackLayout Padding="20,20,20,32" Spacing="24">
+
+                <!-- Stepper -->
+                <HorizontalStackLayout
+                    HorizontalOptions="Center"
+                    Spacing="8">
+
+                    <Border
+                        WidthRequest="12"
+                        HeightRequest="12"
+                        BackgroundColor="#1F5FBF"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 6" />
+
+                    <BoxView
+                        WidthRequest="36"
+                        HeightRequest="2"
+                        Color="#D9DEE5"
+                        VerticalOptions="Center" />
+
+                    <Border
+                        WidthRequest="12"
+                        HeightRequest="12"
+                        BackgroundColor="#D9DEE5"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 6" />
+
+                    <BoxView
+                        WidthRequest="36"
+                        HeightRequest="2"
+                        Color="#D9DEE5"
+                        VerticalOptions="Center" />
+
+                    <Border
+                        WidthRequest="12"
+                        HeightRequest="12"
+                        BackgroundColor="#D9DEE5"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 6" />
+                </HorizontalStackLayout>
+
+                <!-- Header -->
+                <VerticalStackLayout Spacing="6">
+                    <Label
+                        Text="Configura tu quedada"
+                        FontSize="30"
+                        FontAttributes="Bold"
+                        TextColor="#20242A" />
+
+                    <Label
+                        Text="Define los datos básicos antes de crear el grupo."
+                        FontSize="14"
+                        TextColor="#667085" />
+                </VerticalStackLayout>
+
+                <!-- Nombre -->
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        Text="Nombre"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#20242A" />
+
+                    <Border
+                        BackgroundColor="#FFFFFF"
+                        Stroke="#D9DEE5"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="14,6">
+
+                        <Entry
+                            Text="{Binding Name}"
+                            Placeholder="Ej. Cena de equipo"
+                            PlaceholderColor="#98A2B3"
+                            TextColor="#20242A"
+                            BackgroundColor="Transparent"
+                            HeightRequest="46" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Descripción -->
+                <VerticalStackLayout Spacing="8">
+                    <Label
+                        Text="Descripción"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#20242A" />
+
+                    <Border
+                        BackgroundColor="#FFFFFF"
+                        Stroke="#D9DEE5"
+                        StrokeThickness="1"
+                        StrokeShape="RoundRectangle 16"
+                        Padding="14,10">
+
+                        <Editor
+                            Text="{Binding Description}"
+                            Placeholder="Añade contexto si lo necesitas"
+                            PlaceholderColor="#98A2B3"
+                            TextColor="#20242A"
+                            BackgroundColor="Transparent"
+                            HeightRequest="96"
+                            AutoSize="TextChanges" />
+                    </Border>
+                </VerticalStackLayout>
+
+                <!-- Motivo -->
+                <VerticalStackLayout Spacing="10">
+                    <Label
+                        Text="Motivo"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#20242A" />
+
+                    <FlexLayout
+                        BindableLayout.ItemsSource="{Binding Categories}"
+                        Wrap="Wrap"
+                        Direction="Row"
+                        JustifyContent="Start"
+                        AlignItems="Start">
+
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    Margin="0,0,8,8"
+                                    Padding="16,10"
+                                    BackgroundColor="#FFFFFF"
+                                    Stroke="#D9DEE5"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 22">
+
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectCategoryCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+
+                                    <Label
+                                        Text="{Binding Name}"
+                                        FontSize="12"
+                                        TextColor="#20242A"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center" />
+
+                                    <Border.Triggers>
+                                        <DataTrigger
+                                            TargetType="Border"
+                                            Binding="{Binding IsSelected}"
+                                            Value="True">
+                                            <Setter Property="BackgroundColor" Value="#EAF1FB" />
+                                            <Setter Property="Stroke" Value="#1F5FBF" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </FlexLayout>
+                </VerticalStackLayout>
+
+                <!-- Método -->
+                <VerticalStackLayout Spacing="10">
+                    <Label
+                        Text="Método"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#20242A" />
+
+                    <VerticalStackLayout
+                        BindableLayout.ItemsSource="{Binding Methods}"
+                        Spacing="10">
+
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    BackgroundColor="#FFFFFF"
+                                    Stroke="#D9DEE5"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 16"
+                                    Padding="16,14"
+                                    Opacity="1">
+
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer
+                                            Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.SelectMethodCommand}"
+                                            CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label
+                                            Text="{Binding Name}"
+                                            FontSize="14"
+                                            FontAttributes="Bold"
+                                            TextColor="#20242A" />
+
+                                        <Label
+                                            Text="{Binding Description}"
+                                            FontSize="12"
+                                            TextColor="#667085" />
+                                    </VerticalStackLayout>
+
+                                    <Border.Triggers>
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsSelected}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="#EAF1FB" />
+                                            <Setter Property="Stroke" Value="#1F5FBF" />
+                                        </DataTrigger>
+
+                                        <DataTrigger TargetType="Border" Binding="{Binding IsEnabled}" Value="False">
+                                            <Setter Property="Opacity" Value="0.55" />
+                                        </DataTrigger>
+                                    </Border.Triggers>
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </VerticalStackLayout>
+                </VerticalStackLayout>
+
+                <!-- Error -->
+                <Label
+                    Text="{Binding ErrorMessage}"
+                    TextColor="#D92D20"
+                    FontSize="13"
+                    IsVisible="{Binding HasError}" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- CTA -->
+        <Border
+            Grid.Row="1"
+            BackgroundColor="#F6F7F9"
+            StrokeThickness="0"
+            Padding="20,12,20,20">
+
+            <Button
+                Text="Crear grupo"
+                Command="{Binding CreateGroupCommand}"
+                HeightRequest="52"
+                CornerRadius="14"
+                BackgroundColor="#1F5FBF"
+                TextColor="#FFFFFF"
+                FontAttributes="Bold" />
+        </Border>
+
+    </Grid>
+</ContentPage>

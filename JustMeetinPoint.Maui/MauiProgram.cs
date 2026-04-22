@@ -34,6 +34,7 @@ public static class MauiProgram
         builder.Services.AddTransient<GroupsViewModel>();
         builder.Services.AddTransient<GroupLobbyViewModel>();
         builder.Services.AddTransient<MapViewModel>();
+        builder.Services.AddTransient<CreateGroupViewModel>();
 
         // ── VIEWS ─────────────────────────────────────────────────────────────
         builder.Services.AddTransient<LoginView>();
@@ -43,6 +44,7 @@ public static class MauiProgram
         builder.Services.AddTransient<MapView>();
         builder.Services.AddTransient<HomeView>();
         builder.Services.AddTransient<ProfileView>();
+        builder.Services.AddTransient<CreateGroupView>();
 
         return builder.Build();
     }

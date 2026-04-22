@@ -32,23 +32,11 @@ public partial class GroupsViewModel : ObservableObject
         try
         {
             ErrorMessage = string.Empty;
-
-            var result = await _groupService.CreateGroupAsync();
-
-            if (result is null || string.IsNullOrWhiteSpace(result.GroupCode))
-            {
-                ErrorMessage = "No se pudo crear el grupo.";
-                return;
-            }
-
-            string route =
-                $"//main/group-lobby?groupCode={Uri.EscapeDataString(result.GroupCode)}&isCurrentUserHost=true";
-
-            await Shell.Current.GoToAsync(route);
+            await Shell.Current.GoToAsync("create-group");
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error al crear el grupo: {ex.Message}";
+            ErrorMessage = $"Error al abrir la pantalla de creación: {ex.Message}";
         }
     }
 
@@ -76,7 +64,7 @@ public partial class GroupsViewModel : ObservableObject
             }
 
             string route =
-                $"//main/group-lobby?groupCode={Uri.EscapeDataString(lobby.GroupCode)}&isCurrentUserHost=false";
+                $"group-lobby?groupCode={Uri.EscapeDataString(lobby.GroupCode)}&isCurrentUserHost=false";
 
             await Shell.Current.GoToAsync(route);
         }

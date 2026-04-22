@@ -3,94 +3,154 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     x:Class="JustMeetinPoint.Maui.Features.Groups.Views.GroupLobbyView"
-    BackgroundColor="#0B2545"
-    Shell.TabBarIsVisible="False"
-    Shell.NavBarIsVisible="False">
+    Title="Lobby"
+    BackgroundColor="#F6F7F9"
+    Shell.TabBarIsVisible="False">
 
     <ScrollView>
-        <VerticalStackLayout Padding="24,28,24,32" Spacing="24">
+        <VerticalStackLayout Padding="20,20,20,28" Spacing="22">
 
-            <Label
-                Text="Comparte este código con tu grupo."
-                FontSize="15"
-                TextColor="#BDBDBD" />
+            <!-- Stepper -->
+            <HorizontalStackLayout
+                HorizontalOptions="Center"
+                Spacing="8">
 
-            <Border
-                BackgroundColor="#081C34"
-                StrokeThickness="0"
-                StrokeShape="RoundRectangle 18"
-                Padding="20">
+                <Border
+                    WidthRequest="12"
+                    HeightRequest="12"
+                    BackgroundColor="{Binding Step1Color}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 6" />
 
-                <VerticalStackLayout Spacing="8">
-                    <Label
-                        Text="Código del grupo"
-                        FontSize="14"
-                        TextColor="#BDBDBD" />
+                <BoxView
+                    WidthRequest="36"
+                    HeightRequest="2"
+                    Color="#D9DEE5"
+                    VerticalOptions="Center" />
+
+                <Border
+                    WidthRequest="12"
+                    HeightRequest="12"
+                    BackgroundColor="{Binding Step2Color}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 6" />
+
+                <BoxView
+                    WidthRequest="36"
+                    HeightRequest="2"
+                    Color="#D9DEE5"
+                    VerticalOptions="Center" />
+
+                <Border
+                    WidthRequest="12"
+                    HeightRequest="12"
+                    BackgroundColor="{Binding Step3Color}"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 6" />
+            </HorizontalStackLayout>
+
+            <!-- Header -->
+            <VerticalStackLayout Spacing="6">
+                <Label
+                    Text="{Binding LobbyTitle}"
+                    FontSize="28"
+                    FontAttributes="Bold"
+                    TextColor="#20242A" />
+
+                <Label
+                    Text="{Binding LobbySubtitle}"
+                    FontSize="14"
+                    TextColor="#667085" />
+            </VerticalStackLayout>
+
+            <!-- Código -->
+            <VerticalStackLayout Spacing="8">
+                <Label
+                    Text="Código del grupo"
+                    FontSize="13"
+                    FontAttributes="Bold"
+                    TextColor="#20242A" />
+
+                <Border
+                    BackgroundColor="#FFFFFF"
+                    Stroke="#D9DEE5"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="18">
 
                     <Label
                         Text="{Binding GroupCode}"
-                        FontSize="32"
+                        FontSize="30"
                         FontAttributes="Bold"
-                        TextColor="#EAEAEA" />
-                </VerticalStackLayout>
-            </Border>
+                        TextColor="#163E73"
+                        HorizontalOptions="Center" />
+                </Border>
+            </VerticalStackLayout>
 
-            <Border
-                BackgroundColor="#081C34"
-                StrokeThickness="0"
-                StrokeShape="RoundRectangle 18"
-                Padding="18">
+            <!-- Estado -->
+            <VerticalStackLayout Spacing="8">
+                <Label
+                    Text="Estado"
+                    FontSize="13"
+                    FontAttributes="Bold"
+                    TextColor="#20242A" />
 
-                <VerticalStackLayout Spacing="10">
-                    <Label
-                        Text="Estado del grupo"
-                        FontSize="14"
-                        TextColor="#BDBDBD" />
+                <Border
+                    BackgroundColor="#FFFFFF"
+                    Stroke="#D9DEE5"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 16"
+                    Padding="18">
 
-                    <Label
-                        Text="{Binding ParticipantsText}"
-                        FontSize="18"
-                        FontAttributes="Bold"
-                        TextColor="#EAEAEA" />
+                    <VerticalStackLayout Spacing="8">
+                        <Label
+                            Text="{Binding PrimaryStatusText}"
+                            FontSize="18"
+                            FontAttributes="Bold"
+                            TextColor="#20242A" />
 
-                    <Label
-                        Text="{Binding StatusText}"
-                        FontSize="14"
-                        TextColor="#BDBDBD" />
-                </VerticalStackLayout>
-            </Border>
+                        <Label
+                            Text="{Binding SecondaryStatusText}"
+                            FontSize="13"
+                            TextColor="#667085" />
 
+                        <ActivityIndicator
+                            IsVisible="{Binding IsCalculating}"
+                            IsRunning="{Binding IsCalculating}"
+                            Color="#1F5FBF"
+                            Margin="0,4,0,0" />
+                    </VerticalStackLayout>
+                </Border>
+            </VerticalStackLayout>
+
+            <!-- Acción principal -->
             <Button
                 Text="Iniciar grupo"
-                HeightRequest="52"
-                CornerRadius="14"
-                BackgroundColor="#D94FA8"
-                TextColor="White"
+                Command="{Binding StartCommand}"
                 IsVisible="{Binding CanStartGroup}"
-                Command="{Binding StartCommand}" />
-
-            <Button
-                Text="Actualizar"
                 HeightRequest="52"
                 CornerRadius="14"
-                BackgroundColor="#102A49"
-                TextColor="#EAEAEA"
-                Command="{Binding RefreshCommand}" />
+                BackgroundColor="#1F5FBF"
+                TextColor="#FFFFFF"
+                FontAttributes="Bold" />
 
+            <!-- Salir -->
             <Button
                 Text="Salir del grupo"
-                HeightRequest="52"
+                Command="{Binding LeaveGroupCommand}"
+                HeightRequest="50"
                 CornerRadius="14"
-                BackgroundColor="#102A49"
-                TextColor="#EAEAEA"
-                Command="{Binding LeaveGroupCommand}" />
+                BackgroundColor="#FFFFFF"
+                TextColor="#D92D20"
+                BorderColor="#F3D6D2"
+                BorderWidth="1" />
 
+            <!-- Error -->
             <Label
                 Text="{Binding ErrorMessage}"
-                TextColor="#FF7B7B"
-                FontSize="14"
-                LineBreakMode="WordWrap" />
-
+                TextColor="#D92D20"
+                FontSize="13"
+                IsVisible="{Binding HasError}" />
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

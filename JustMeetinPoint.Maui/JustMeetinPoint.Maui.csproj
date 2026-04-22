@@ -68,6 +68,10 @@
 			<Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
 
+		<MauiXaml Update="Features\Groups\Views\CreateGroupView.xaml">
+		  <Generator>MSBuild:Compile</Generator>
+		</MauiXaml>
+
 		<MauiXaml Update="Features\Groups\Views\GroupLobbyView.xaml">
 		  <Generator>MSBuild:Compile</Generator>
 		</MauiXaml>
