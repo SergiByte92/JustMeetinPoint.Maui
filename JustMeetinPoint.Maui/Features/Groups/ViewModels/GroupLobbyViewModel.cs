@@ -13,6 +13,10 @@ public partial class GroupLobbyViewModel : ObservableObject
     private readonly IGroupService _groupService;
     private readonly IMeetingStateService _meetingStateService;
 
+    private CancellationTokenSource? _autoRefreshCts;
+    private bool _hasSentLocation;
+    private bool _isAutoRefreshRunning;
+
     public GroupLobbyViewModel(
         IGroupService groupService,
         IMeetingStateService meetingStateService)
@@ -108,6 +112,63 @@ public partial class GroupLobbyViewModel : ObservableObject
         OnPropertyChanged(nameof(HasError));
     }
 
+    public void StartAutoRefreshLoop()
+    {
+        if (_isAutoRefreshRunning)
+            return;
+
+        if (string.IsNullOrWhiteSpace(GroupCode))
+            return;
+
+        _autoRefreshCts = new CancellationTokenSource();
+        _isAutoRefreshRunning = true;
+
+        Console.WriteLine($"[LobbyVM] StartAutoRefreshLoop -> Group={GroupCode}, Host={IsCurrentUserHost}");
+
+        _ = RunAutoRefreshLoopAsync(_autoRefreshCts.Token);
+    }
+
+    public void StopAutoRefreshLoop()
+    {
+        Console.WriteLine($"[LobbyVM] StopAutoRefreshLoop -> Group={GroupCode}, Host={IsCurrentUserHost}");
+
+        _autoRefreshCts?.Cancel();
+        _autoRefreshCts?.Dispose();
+        _autoRefreshCts = null;
+        _isAutoRefreshRunning = false;
+    }
+
+    private async Task RunAutoRefreshLoopAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                if (!string.IsNullOrWhiteSpace(GroupCode) && !_hasSentLocation)
+                {
+                    await MainThread.InvokeOnMainThreadAsync(async () =>
+                    {
+                        await LoadLobbyAsync();
+                    });
+                }
+
+                await Task.Delay(1500, cancellationToken);
+            }
+        }
+        catch (TaskCanceledException)
+        {
+            Console.WriteLine($"[LobbyVM] AutoRefresh cancelado -> Group={GroupCode}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[LobbyVM] Error en AutoRefreshLoop: {ex}");
+        }
+        finally
+        {
+            _isAutoRefreshRunning = false;
+        }
+    }
+
     [RelayCommand]
     private async Task LoadLobbyAsync()
     {
@@ -126,11 +187,14 @@ public partial class GroupLobbyViewModel : ObservableObject
             MemberCount = lobby.MemberCount;
             HasStarted = lobby.HasStarted;
 
-            Console.WriteLine($"[LobbyVM] RefreshLobbyAsync -> MemberCount={MemberCount}, HasStarted={HasStarted}, Host={IsCurrentUserHost}");
+            Console.WriteLine($"[LobbyVM] RefreshLobbyAsync -> MemberCount={MemberCount}, HasStarted={HasStarted}, Host={IsCurrentUserHost}, HasSentLocation={_hasSentLocation}");
 
-            if (HasStarted)
+            if (HasStarted && !_hasSentLocation)
             {
-                Console.WriteLine($"[LobbyVM] HasStarted=true, entrando a SendCurrentLocationAndNavigateToMapAsync. Group={GroupCode}, Host={IsCurrentUserHost}");
+                _hasSentLocation = true;
+
+                Console.WriteLine($"[LobbyVM] HasStarted=true y aún no se ha enviado ubicación. Entrando a SendCurrentLocationAndNavigateToMapAsync. Group={GroupCode}, Host={IsCurrentUserHost}");
+
                 await SendCurrentLocationAndNavigateToMapAsync();
             }
         }
@@ -177,8 +241,13 @@ public partial class GroupLobbyViewModel : ObservableObject
 
             HasStarted = true;
 
-            Console.WriteLine($"[LobbyVM] StartAsync OK, entrando a SendCurrentLocationAndNavigateToMapAsync. Group={GroupCode}, Host={IsCurrentUserHost}");
-            await SendCurrentLocationAndNavigateToMapAsync();
+            if (!_hasSentLocation)
+            {
+                _hasSentLocation = true;
+
+                Console.WriteLine($"[LobbyVM] StartAsync OK. Owner enviará ubicación. Group={GroupCode}, Host={IsCurrentUserHost}");
+                await SendCurrentLocationAndNavigateToMapAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -203,6 +272,8 @@ public partial class GroupLobbyViewModel : ObservableObject
             ErrorMessage = string.Empty;
 
             Console.WriteLine($"[LobbyVM] LeaveGroupAsync -> Group={GroupCode}, Host={IsCurrentUserHost}");
+
+            StopAutoRefreshLoop();
 
             await _groupService.LeaveGroupAsync(GroupCode);
             await Shell.Current.GoToAsync("//main/groups");
@@ -262,6 +333,8 @@ public partial class GroupLobbyViewModel : ObservableObject
         Console.WriteLine($"[LobbyVM] Resultado recibido: {result.Latitude}, {result.Longitude}, {result.DurationSeconds}");
 
         _meetingStateService.CurrentResult = result;
+
+        StopAutoRefreshLoop();
 
         await Task.Delay(1800);
         await Shell.Current.GoToAsync("//main/map");
