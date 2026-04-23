@@ -1,6 +1,4 @@
-using JustMeetinPoint.Maui.Features.Map.Models;
 using JustMeetinPoint.Maui.Features.Map.ViewModels;
-using System.ComponentModel;
 using System.Globalization;
 using System.Text;
 
@@ -10,14 +8,10 @@ public partial class MapView : ContentPage
 {
     private readonly MapViewModel _viewModel;
 
-    private bool _isLoaded;
-    private bool _eventsSubscribed;
-    private bool _isAnimating;
-    private double _panStartTranslationY;
-
+    private const double CollapsedTranslationY = 260;
     private const double ExpandedTranslationY = 0;
-    private const double CollapsedTranslationY = 332;
-    private const uint SheetAnimationDuration = 220;
+
+    private double _startTranslationY;
 
     public MapView(MapViewModel viewModel)
     {
@@ -27,215 +21,212 @@ public partial class MapView : ContentPage
         BindingContext = _viewModel;
     }
 
+    /// <summary>
+    /// Se ejecuta cada vez que la pantalla aparece.
+    /// Carga el resultado desde MeetingStateService y renderiza el mapa.
+    /// </summary>
     protected override async void OnAppearing()
     {
         base.OnAppearing();
 
-        SubscribeEvents();
+        await _viewModel.Load();
 
-        if (!_isLoaded)
+        LoadMapHtml();
+    }
+
+    /// <summary>
+    /// Gestiona el gesto vertical del bottom sheet.
+    /// Si el usuario arrastra hacia arriba, expande.
+    /// Si arrastra hacia abajo, colapsa.
+    /// </summary>
+    private async void OnBottomSheetPanUpdated(object sender, PanUpdatedEventArgs e)
+    {
+        switch (e.StatusType)
         {
-            await _viewModel.Load();
-            RenderMap();
-            await UpdateBottomSheet(animated: false);
-            _isLoaded = true;
-            return;
-        }
+            case GestureStatus.Started:
+                _startTranslationY = BottomSheet.TranslationY;
+                break;
 
-        await UpdateBottomSheet(animated: false);
-    }
+            case GestureStatus.Running:
+                double newTranslation = _startTranslationY + e.TotalY;
 
-    protected override void OnDisappearing()
-    {
-        base.OnDisappearing();
-        UnsubscribeEvents();
-    }
+                if (newTranslation < ExpandedTranslationY)
+                    newTranslation = ExpandedTranslationY;
 
-    private void SubscribeEvents()
-    {
-        if (_eventsSubscribed)
-            return;
+                if (newTranslation > CollapsedTranslationY)
+                    newTranslation = CollapsedTranslationY;
 
-        _viewModel.PropertyChanged += ViewModel_PropertyChanged;
-        _eventsSubscribed = true;
-    }
+                BottomSheet.TranslationY = newTranslation;
+                break;
 
-    private void UnsubscribeEvents()
-    {
-        if (!_eventsSubscribed)
-            return;
+            case GestureStatus.Completed:
+            case GestureStatus.Canceled:
+                bool shouldExpand = BottomSheet.TranslationY < CollapsedTranslationY / 2;
 
-        _viewModel.PropertyChanged -= ViewModel_PropertyChanged;
-        _eventsSubscribed = false;
-    }
-
-    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(MapViewModel.IsSheetExpanded))
-        {
-            MainThread.BeginInvokeOnMainThread(async () =>
-            {
-                await UpdateBottomSheet(animated: true);
-            });
+                await SetBottomSheetExpandedAsync(shouldExpand);
+                break;
         }
     }
 
-    private void RenderMap()
+    /// <summary>
+    /// Expande o contrae el bottom sheet con animación.
+    /// También activa/desactiva el contenido expandido.
+    /// </summary>
+    private async Task SetBottomSheetExpandedAsync(bool expanded)
     {
-        string destinationLat = _viewModel.Latitude.ToString(CultureInfo.InvariantCulture);
-        string destinationLon = _viewModel.Longitude.ToString(CultureInfo.InvariantCulture);
-        string originLat = _viewModel.OriginLatitude.ToString(CultureInfo.InvariantCulture);
-        string originLon = _viewModel.OriginLongitude.ToString(CultureInfo.InvariantCulture);
+        _viewModel.IsSheetExpanded = expanded;
 
-        string routeJsArray = _viewModel.RoutePoints is not null && _viewModel.RoutePoints.Count > 1
-            ? BuildRoutePointsJsArray(_viewModel.RoutePoints)
-            : $"[[{originLat},{originLon}],[{destinationLat},{destinationLon}]]";
+        double target = expanded
+            ? ExpandedTranslationY
+            : CollapsedTranslationY;
 
-        string html = $@"
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset='utf-8' />
-    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-    <link rel='stylesheet' href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />
-    <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
-    <style>
-        html, body, #map {{
-            height: 100%;
-            margin: 0;
-            padding: 0;
-        }}
-    </style>
-</head>
-<body>
-    <div id='map'></div>
+        ExpandedContent.IsVisible = expanded;
 
-    <script>
-        var destination = [{destinationLat}, {destinationLon}];
-        var origin = [{originLat}, {originLon}];
-        var routePoints = {routeJsArray};
+        await BottomSheet.TranslateTo(
+            x: 0,
+            y: target,
+            length: 220,
+            easing: Easing.CubicOut);
+    }
 
-        var map = L.map('map', {{
-            zoomControl: false
-        }});
-
-        L.tileLayer('https://{{s}}.tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }}).addTo(map);
-
-        L.marker(origin).addTo(map).bindPopup('Origen');
-        L.marker(destination).addTo(map).bindPopup('Punto de encuentro');
-
-        var polyline = L.polyline(routePoints, {{
-            color: '#0B2545',
-            weight: 5
-        }}).addTo(map);
-
-        var bounds = L.latLngBounds(routePoints);
-        map.fitBounds(bounds, {{ padding: [30, 30] }});
-    </script>
-</body>
-</html>";
-
+    /// <summary>
+    /// Genera el HTML del mapa y lo carga en el WebView.
+    /// 
+    /// Por ahora pinta:
+    /// - origen del usuario
+    /// - punto de encuentro
+    /// - línea básica entre ambos
+    /// 
+    /// Más adelante puedes sustituir esa línea básica por la polyline real
+    /// decodificada desde EncodedPolyline.
+    /// </summary>
+    private void LoadMapHtml()
+    {
+        string html = BuildMapHtml();
         MapWebView.Source = new HtmlWebViewSource
         {
             Html = html
         };
     }
 
-    private static string BuildRoutePointsJsArray(List<RoutePointModel> points)
+    /// <summary>
+    /// Construye un mapa Leaflet embebido.
+    /// Usa OpenStreetMap como base.
+    /// </summary>
+    private string BuildMapHtml()
     {
-        if (points is null || points.Count == 0)
-            return "[]";
+        string destinationLat = FormatDouble(_viewModel.Latitude);
+        string destinationLon = FormatDouble(_viewModel.Longitude);
+        string originLat = FormatDouble(_viewModel.OriginLatitude);
+        string originLon = FormatDouble(_viewModel.OriginLongitude);
 
-        var sb = new StringBuilder("[");
+        string meetingPointName = EscapeJs(_viewModel.MeetingPointName);
+        string durationText = EscapeJs(_viewModel.DurationText);
+        string summaryText = EscapeJs(_viewModel.SummaryText);
 
-        for (int i = 0; i < points.Count; i++)
+        bool hasOrigin =
+            Math.Abs(_viewModel.OriginLatitude) > 0.000001 &&
+            Math.Abs(_viewModel.OriginLongitude) > 0.000001;
+
+        StringBuilder routeLineBuilder = new();
+
+        if (hasOrigin)
         {
-            string lat = points[i].Latitude.ToString(CultureInfo.InvariantCulture);
-            string lon = points[i].Longitude.ToString(CultureInfo.InvariantCulture);
+            routeLineBuilder.AppendLine($@"
+                const origin = [{originLat}, {originLon}];
 
-            sb.Append($"[{lat},{lon}]");
+                L.marker(origin, {{
+                    title: 'Tu ubicación'
+                }}).addTo(map)
+                  .bindPopup('Tu ubicación');
 
-            if (i < points.Count - 1)
-                sb.Append(",");
+                L.polyline([origin, destination], {{
+                    weight: 5,
+                    opacity: 0.75
+                }}).addTo(map);
+
+                const bounds = L.latLngBounds([origin, destination]);
+                map.fitBounds(bounds, {{ padding: [40, 40] }});
+            ");
+        }
+        else
+        {
+            routeLineBuilder.AppendLine(@"
+                map.setView(destination, 14);
+            ");
         }
 
-        sb.Append("]");
-        return sb.ToString();
+        return $@"
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset='utf-8' />
+    <meta name='viewport' content='width=device-width, initial-scale=1.0' />
+
+    <link
+        rel='stylesheet'
+        href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css' />
+
+    <script src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'></script>
+
+    <style>
+        html, body, #map {{
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+        }}
+
+        .leaflet-control-attribution {{
+            font-size: 10px;
+        }}
+    </style>
+</head>
+
+<body>
+    <div id='map'></div>
+
+    <script>
+        const destination = [{destinationLat}, {destinationLon}];
+
+        const map = L.map('map', {{
+            zoomControl: false
+        }});
+
+        L.tileLayer('https://tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png', {{
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+        }}).addTo(map);
+
+        L.marker(destination, {{
+            title: '{meetingPointName}'
+        }}).addTo(map)
+          .bindPopup('<b>{meetingPointName}</b><br>{durationText}<br>{summaryText}');
+
+        {routeLineBuilder}
+    </script>
+</body>
+</html>";
     }
 
-    private async Task UpdateBottomSheet(bool animated)
+    /// <summary>
+    /// Formatea doubles con punto decimal, no coma.
+    /// JavaScript necesita 41.38, no 41,38.
+    /// </summary>
+    private static string FormatDouble(double value)
     {
-        if (_isAnimating)
-            return;
-
-        try
-        {
-            _isAnimating = true;
-
-            double targetTranslation = _viewModel.IsSheetExpanded
-                ? ExpandedTranslationY
-                : CollapsedTranslationY;
-
-            if (_viewModel.IsSheetExpanded)
-            {
-                ExpandedContent.IsVisible = true;
-            }
-
-            if (animated)
-            {
-                await BottomSheet.TranslateTo(0, targetTranslation, SheetAnimationDuration, Easing.CubicOut);
-            }
-            else
-            {
-                BottomSheet.TranslationY = targetTranslation;
-            }
-
-            if (!_viewModel.IsSheetExpanded)
-            {
-                ExpandedContent.IsVisible = false;
-            }
-        }
-        finally
-        {
-            _isAnimating = false;
-        }
+        return value.ToString(CultureInfo.InvariantCulture);
     }
 
-    private async void OnBottomSheetPanUpdated(object? sender, PanUpdatedEventArgs e)
+    /// <summary>
+    /// Escapa texto para evitar romper strings JavaScript.
+    /// </summary>
+    private static string EscapeJs(string? value)
     {
-        if (_isAnimating)
-            return;
-
-        switch (e.StatusType)
-        {
-            case GestureStatus.Started:
-                _panStartTranslationY = BottomSheet.TranslationY;
-                break;
-
-            case GestureStatus.Running:
-                double nextTranslation = _panStartTranslationY + e.TotalY;
-
-                nextTranslation = Math.Max(ExpandedTranslationY, nextTranslation);
-                nextTranslation = Math.Min(CollapsedTranslationY, nextTranslation);
-
-                if (nextTranslation < CollapsedTranslationY)
-                {
-                    ExpandedContent.IsVisible = true;
-                }
-
-                BottomSheet.TranslationY = nextTranslation;
-                break;
-
-            case GestureStatus.Completed:
-            case GestureStatus.Canceled:
-                bool shouldExpand = BottomSheet.TranslationY < (CollapsedTranslationY / 2);
-
-                _viewModel.IsSheetExpanded = shouldExpand;
-                await UpdateBottomSheet(animated: true);
-                break;
-        }
+        return (value ?? string.Empty)
+            .Replace("\\", "\\\\")
+            .Replace("'", "\\'")
+            .Replace("\r", "")
+            .Replace("\n", " ");
     }
 }

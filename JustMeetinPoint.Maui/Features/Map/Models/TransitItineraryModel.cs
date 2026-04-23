@@ -1,9 +1,12 @@
 ﻿namespace JustMeetinPoint.Maui.Features.Map.Models;
 
-public class TransitItineraryModel
+/// <summary>
+/// Itinerario completo para la UI del mapa.
+/// </summary>
+public sealed class TransitItineraryModel
 {
-    public int TotalDurationSeconds { get; set; }
-    public double TotalDistanceMeters { get; set; }
+    public int DurationSeconds { get; set; }
+    public double DistanceMeters { get; set; }
     public int TransfersCount { get; set; }
 
     public List<RouteLegModel> Legs { get; set; } = new();

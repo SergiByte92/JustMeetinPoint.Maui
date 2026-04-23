@@ -3,7 +3,7 @@ using JustMeetinPoint.Maui.Features.Groups.Models;
 using JustMeetinPoint.Maui.Features.Map.Models;
 using JustMeetingPoint.Maui.NetUtils;
 using System.Net.Sockets;
-using System.Threading;
+using System.Text.Json;
 
 namespace JustMeetinPoint.Maui.Features.Groups.Services;
 
@@ -21,7 +21,12 @@ public class GroupService : IGroupService
     private const int LobbyOptionPollResult = 5;
 
     private const int PollDelayMilliseconds = 1500;
-    private const int MaxPollAttempts = 40; // ~60 segundos
+    private const int MaxPollAttempts = 40;
+
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     public GroupService(IAuthService authService)
     {
@@ -45,10 +50,12 @@ public class GroupService : IGroupService
             SocketTools.sendString(method, socket);
 
             bool success = SocketTools.receiveBool(socket);
+
             if (!success)
                 throw new InvalidOperationException("No se pudo crear el grupo.");
 
             string groupCode = SocketTools.receiveString(socket);
+
             bool sessionValid = SocketTools.receiveBool(socket);
 
             if (!sessionValid)
@@ -77,10 +84,12 @@ public class GroupService : IGroupService
             SocketTools.sendString(groupCode, socket);
 
             bool success = SocketTools.receiveBool(socket);
+
             if (!success)
                 throw new InvalidOperationException("No se pudo unir al grupo.");
 
             bool sessionValid = SocketTools.receiveBool(socket);
+
             if (!sessionValid)
                 throw new InvalidOperationException("La sesión de lobby no es válida.");
 
@@ -108,6 +117,7 @@ public class GroupService : IGroupService
             SocketTools.sendInt(socket, LobbyOptionRefresh);
 
             bool sessionValid = SocketTools.receiveBool(socket);
+
             if (!sessionValid)
                 throw new InvalidOperationException("La sesión del grupo ya no existe.");
 
@@ -147,15 +157,27 @@ public class GroupService : IGroupService
             Console.WriteLine($"[GroupService] StartGroupAsync -> Group={groupCode}, Host={isCurrentUserHost}");
 
             SocketTools.sendInt(socket, LobbyOptionStart);
+
             bool started = SocketTools.receiveBool(socket);
 
             if (started)
             {
+                /*
+                 * El servidor, tras procesar Start, vuelve al inicio del bucle LobbyGroup
+                 * y envía la cabecera estándar:
+                 *
+                 * bool sessionValid
+                 * int memberCount
+                 * bool hasStarted
+                 *
+                 * La consumimos aquí para dejar el socket alineado antes de SendLocation.
+                 */
                 bool sessionValid = SocketTools.receiveBool(socket);
-                SocketTools.receiveInt(socket);   // memberCount
-                SocketTools.receiveBool(socket);  // hasStarted
+                int memberCount = SocketTools.receiveInt(socket);
+                bool hasStarted = SocketTools.receiveBool(socket);
 
-                Console.WriteLine($"[GroupService] Start OK. SessionValid={sessionValid}");
+                Console.WriteLine(
+                    $"[GroupService] Start OK. SessionValid={sessionValid}, Members={memberCount}, HasStarted={hasStarted}");
 
                 if (!sessionValid)
                     throw new InvalidOperationException("Sesión inválida tras iniciar el grupo.");
@@ -176,26 +198,46 @@ public class GroupService : IGroupService
 
             Console.WriteLine($"[GroupService] Enviando ubicación: {latitude}, {longitude}");
 
+            /*
+             * IMPORTANTE:
+             * A partir del nuevo servidor, la respuesta de SendLocation ya no es:
+             *
+             * double lat
+             * double lon
+             * int duration
+             *
+             * Ahora es:
+             *
+             * string json
+             *
+             * Ese JSON contiene:
+             * - punto de encuentro
+             * - duración
+             * - distancia
+             * - transbordos
+             * - legs
+             */
             SocketTools.sendInt(socket, LobbyOptionSendLocation);
             SocketTools.sendDouble(socket, latitude);
             SocketTools.sendDouble(socket, longitude);
 
-            double resultLat = SocketTools.receiveDouble(socket);
-            double resultLon = SocketTools.receiveDouble(socket);
-            int duration = SocketTools.receiveInt(socket);
+            MeetingResultModel? immediateResult = ReceiveMeetingResultJson(socket);
 
-            Console.WriteLine($"[GroupService] Respuesta inicial => lat:{resultLat}, lon:{resultLon}, duration:{duration}");
+            Console.WriteLine(
+                $"[GroupService] Respuesta inicial => Duration={immediateResult?.DurationSeconds}, HasValidRoute={immediateResult?.HasValidRoute}");
 
-            MeetingResultModel? immediateResult = BuildMeetingResultFromServerResponse(
-                resultLat,
-                resultLon,
-                duration,
-                latitude,
-                longitude);
+            if (immediateResult is not null && immediateResult.DurationSeconds != -1)
+                return NormalizeResult(immediateResult, latitude, longitude);
 
-            if (immediateResult is not null)
-                return immediateResult;
-
+            /*
+             * Si el servidor devuelve DurationSeconds == -1,
+             * significa que todavía faltan ubicaciones.
+             *
+             * Entonces hacemos polling:
+             * 1. leemos cabecera estándar del lobby
+             * 2. enviamos PollResult
+             * 3. recibimos JSON
+             */
             for (int attempt = 1; attempt <= MaxPollAttempts; attempt++)
             {
                 Thread.Sleep(PollDelayMilliseconds);
@@ -203,83 +245,160 @@ public class GroupService : IGroupService
                 Console.WriteLine($"[GroupService] Poll attempt {attempt}/{MaxPollAttempts}: leyendo cabecera...");
 
                 bool sessionValid = SocketTools.receiveBool(socket);
+
                 if (!sessionValid)
                     throw new InvalidOperationException("La sesión del grupo ha finalizado.");
 
-                SocketTools.receiveInt(socket);   // memberCount
-                SocketTools.receiveBool(socket);  // hasStarted
+                int memberCount = SocketTools.receiveInt(socket);
+                bool hasStarted = SocketTools.receiveBool(socket);
+
+                Console.WriteLine(
+                    $"[GroupService] Poll header <- Members={memberCount}, HasStarted={hasStarted}");
 
                 Console.WriteLine($"[GroupService] Poll attempt {attempt}/{MaxPollAttempts}: enviando PollResult...");
+
                 SocketTools.sendInt(socket, LobbyOptionPollResult);
 
-                resultLat = SocketTools.receiveDouble(socket);
-                resultLon = SocketTools.receiveDouble(socket);
-                duration = SocketTools.receiveInt(socket);
+                MeetingResultModel? pollResult = ReceiveMeetingResultJson(socket);
 
-                Console.WriteLine($"[GroupService] Poll => lat:{resultLat}, lon:{resultLon}, duration:{duration}");
+                Console.WriteLine(
+                    $"[GroupService] Poll result => Duration={pollResult?.DurationSeconds}, HasValidRoute={pollResult?.HasValidRoute}");
 
-                MeetingResultModel? pollResult = BuildMeetingResultFromServerResponse(
-                    resultLat,
-                    resultLon,
-                    duration,
-                    latitude,
-                    longitude);
-
-                if (pollResult is not null)
-                    return pollResult;
-
-                if (duration == -1)
+                if (pollResult is null)
                     continue;
+
+                if (pollResult.DurationSeconds == -1)
+                    continue;
+
+                return NormalizeResult(pollResult, latitude, longitude);
             }
 
             throw new InvalidOperationException("El cálculo está tardando demasiado. Inténtalo de nuevo.");
         });
     }
 
-    private static MeetingResultModel? BuildMeetingResultFromServerResponse(
-        double resultLat,
-        double resultLon,
-        int duration,
+    /// <summary>
+    /// Lee el JSON enviado por el servidor y lo convierte a MeetingResultModel.
+    /// </summary>
+    private static MeetingResultModel? ReceiveMeetingResultJson(Socket socket)
+    {
+        string json = SocketTools.receiveString(socket);
+
+        Console.WriteLine($"[GroupService] JSON recibido: {json}");
+
+        MeetingResultModel? result = JsonSerializer.Deserialize<MeetingResultModel>(
+            json,
+            JsonOptions);
+
+        if (result == null)
+            throw new InvalidOperationException("No se pudo deserializar el resultado de ruta.");
+
+        return result;
+    }
+
+    /// <summary>
+    /// Normaliza el resultado recibido:
+    /// - rellena origen si no viniera informado
+    /// - transforma legs en itinerary
+    /// - crea puntos básicos de ruta
+    /// - gestiona errores funcionales
+    /// </summary>
+    private static MeetingResultModel NormalizeResult(
+        MeetingResultModel result,
         double originLatitude,
         double originLongitude)
     {
-        if (duration >= 0)
+        if (result.DurationSeconds == -2)
+            throw new InvalidOperationException(result.AddressText);
+
+        /*
+         * Si el servidor no informa origen por cualquier motivo,
+         * lo completamos desde la ubicación enviada por el cliente.
+         */
+        if (result.OriginLatitude == 0 && result.OriginLongitude == 0)
         {
-            return new MeetingResultModel
-            {
-                Latitude = resultLat,
-                Longitude = resultLon,
-                DurationSeconds = duration,
-                OriginLatitude = originLatitude,
-                OriginLongitude = originLongitude,
-                MeetingPointName = "Punto de encuentro",
-                AddressText = "Dirección no disponible",
-                DistanceText = "Distancia no disponible",
-                FairnessText = "Resultado calculado correctamente"
-            };
+            result.OriginLatitude = originLatitude;
+            result.OriginLongitude = originLongitude;
         }
 
-        if (duration == -2)
-            throw new InvalidOperationException("Error calculando la ruta en el servidor.");
+        /*
+         * Si no hay RoutePoints, generamos una línea básica:
+         * origen -> punto de encuentro.
+         *
+         * Más adelante puedes sustituir esto por la polyline real de OTP.
+         */
+        result.RoutePoints ??= BuildFallbackRoutePoints(result);
 
-        if (duration == -3)
+        /*
+         * Convertimos Legs en TransitItineraryModel para que MapViewModel
+         * pueda seguir usando su propiedad Itinerary.
+         */
+        result.Itinerary ??= BuildItinerary(result);
+
+        /*
+         * Ajustes de texto por seguridad.
+         */
+        if (string.IsNullOrWhiteSpace(result.MeetingPointName))
+            result.MeetingPointName = "Punto de encuentro";
+
+        if (string.IsNullOrWhiteSpace(result.AddressText))
+            result.AddressText = result.HasValidRoute
+                ? "Ruta calculada correctamente"
+                : "No se encontró una ruta válida";
+
+        if (string.IsNullOrWhiteSpace(result.DistanceText))
         {
-            return new MeetingResultModel
-            {
-                Latitude = resultLat,
-                Longitude = resultLon,
-                DurationSeconds = 0,
-                OriginLatitude = originLatitude,
-                OriginLongitude = originLongitude,
-                MeetingPointName = "Punto de encuentro",
-                AddressText = "No se encontró una ruta válida",
-                DistanceText = "Distancia no disponible",
-                FairnessText = "Centroide calculado, pero sin ruta disponible"
-            };
+            result.DistanceText = result.DistanceMeters > 0
+                ? $"{result.DistanceMeters / 1000:0.0} km"
+                : "Distancia no disponible";
         }
 
-        // duration == -1 => aún faltan ubicaciones / aún no hay resultado
-        return null;
+        if (string.IsNullOrWhiteSpace(result.FairnessText))
+        {
+            result.FairnessText = result.TransferCount == 0
+                ? "Ruta directa sin transbordos"
+                : $"Ruta con {result.TransferCount} transbordo{(result.TransferCount == 1 ? "" : "s")}";
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Construye el itinerario que consume MapViewModel.
+    /// </summary>
+    private static TransitItineraryModel? BuildItinerary(MeetingResultModel result)
+    {
+        if (result.Legs == null || result.Legs.Count == 0)
+            return null;
+
+        return new TransitItineraryModel
+        {
+            DurationSeconds = result.DurationSeconds,
+            DistanceMeters = result.DistanceMeters,
+            TransfersCount = result.TransferCount,
+            Legs = result.Legs
+        };
+    }
+
+    /// <summary>
+    /// Crea una ruta mínima de dos puntos:
+    /// origen del usuario -> punto de encuentro.
+    /// </summary>
+    private static List<RoutePointModel> BuildFallbackRoutePoints(MeetingResultModel result)
+    {
+        return new List<RoutePointModel>
+        {
+            new RoutePointModel
+            {
+                Latitude = result.OriginLatitude,
+                Longitude = result.OriginLongitude
+            },
+            new RoutePointModel
+            {
+                Latitude = result.Latitude,
+                Longitude = result.Longitude
+            }
+        };
     }
 
     private Socket GetAuthenticatedSocket()

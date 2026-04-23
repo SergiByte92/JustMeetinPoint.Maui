@@ -22,6 +22,7 @@
                 StrokeThickness="0"
                 StrokeShape="RoundRectangle 16"
                 Padding="14,10">
+
                 <Label
                     Text="{Binding MeetingPointName}"
                     FontSize="16"
@@ -37,6 +38,7 @@
                 StrokeThickness="0"
                 StrokeShape="RoundRectangle 16"
                 Padding="12,10">
+
                 <Label
                     Text="{Binding DurationText}"
                     FontSize="14"
@@ -53,14 +55,14 @@
             StrokeThickness="0"
             StrokeShape="RoundRectangle 24,24,0,0"
             Padding="18,12,18,22"
-            HeightRequest="360"
-            TranslationY="130">
+            HeightRequest="520"
+            TranslationY="260">
 
             <Border.GestureRecognizers>
                 <PanGestureRecognizer PanUpdated="OnBottomSheetPanUpdated" />
             </Border.GestureRecognizers>
 
-            <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+            <Grid RowDefinitions="Auto,Auto,Auto,*">
 
                 <!-- HANDLE -->
                 <Grid Grid.Row="0" Margin="0,0,0,12">
@@ -74,7 +76,7 @@
                 </Grid>
 
                 <!-- RESUMEN -->
-                <VerticalStackLayout Grid.Row="1" Spacing="3">
+                <VerticalStackLayout Grid.Row="1" Spacing="4">
                     <Label
                         Text="{Binding MeetingPointName}"
                         FontSize="20"
@@ -85,6 +87,12 @@
                         Text="{Binding SummaryText}"
                         FontSize="14"
                         TextColor="#475569" />
+
+                    <Label
+                        Text="{Binding TransfersText}"
+                        FontSize="13"
+                        FontAttributes="Bold"
+                        TextColor="#D94FA8" />
                 </VerticalStackLayout>
 
                 <!-- MÉTRICAS -->
@@ -100,11 +108,13 @@
                         StrokeThickness="0"
                         StrokeShape="RoundRectangle 16"
                         Padding="14">
+
                         <VerticalStackLayout Spacing="4">
                             <Label
                                 Text="Tiempo estimado"
                                 FontSize="12"
                                 TextColor="#64748B" />
+
                             <Label
                                 Text="{Binding DurationText}"
                                 FontSize="18"
@@ -119,11 +129,13 @@
                         StrokeThickness="0"
                         StrokeShape="RoundRectangle 16"
                         Padding="14">
+
                         <VerticalStackLayout Spacing="4">
                             <Label
                                 Text="Distancia"
                                 FontSize="12"
                                 TextColor="#64748B" />
+
                             <Label
                                 Text="{Binding DistanceText}"
                                 FontSize="18"
@@ -134,42 +146,157 @@
                 </Grid>
 
                 <!-- DETALLE EXPANDIDO -->
-                <Border
+                <ScrollView
                     x:Name="ExpandedContent"
                     Grid.Row="3"
                     Margin="0,16,0,0"
-                    BackgroundColor="#F1F5F9"
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 18"
-                    Padding="14"
                     IsVisible="False">
 
-                    <VerticalStackLayout Spacing="10">
-                        <VerticalStackLayout Spacing="2">
-                            <Label
-                                Text="Dirección"
-                                FontSize="12"
-                                TextColor="#64748B" />
-                            <Label
-                                Text="{Binding AddressText}"
-                                FontSize="15"
-                                FontAttributes="Bold"
-                                TextColor="#0B2545" />
-                        </VerticalStackLayout>
+                    <VerticalStackLayout Spacing="14">
 
-                        <VerticalStackLayout Spacing="2">
+                        <!-- INFO GENERAL -->
+                        <Border
+                            BackgroundColor="#F1F5F9"
+                            StrokeThickness="0"
+                            StrokeShape="RoundRectangle 18"
+                            Padding="14">
+
+                            <VerticalStackLayout Spacing="10">
+
+                                <VerticalStackLayout Spacing="2">
+                                    <Label
+                                        Text="Estado de ruta"
+                                        FontSize="12"
+                                        TextColor="#64748B" />
+
+                                    <Label
+                                        Text="{Binding AddressText}"
+                                        FontSize="15"
+                                        FontAttributes="Bold"
+                                        TextColor="#0B2545" />
+                                </VerticalStackLayout>
+
+                                <VerticalStackLayout Spacing="2">
+                                    <Label
+                                        Text="Equilibrio grupal"
+                                        FontSize="12"
+                                        TextColor="#64748B" />
+
+                                    <Label
+                                        Text="{Binding FairnessText}"
+                                        FontSize="15"
+                                        FontAttributes="Bold"
+                                        TextColor="#0B2545" />
+                                </VerticalStackLayout>
+
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- ITINERARIO -->
+                        <VerticalStackLayout Spacing="8">
+
                             <Label
-                                Text="Equilibrio grupal"
-                                FontSize="12"
-                                TextColor="#64748B" />
-                            <Label
-                                Text="{Binding FairnessText}"
-                                FontSize="15"
+                                Text="Itinerario"
+                                FontSize="16"
                                 FontAttributes="Bold"
                                 TextColor="#0B2545" />
+
+                            <Label
+                                Text="No hay detalle de itinerario disponible."
+                                FontSize="13"
+                                TextColor="#64748B"
+                                IsVisible="{Binding HasItinerary, Converter={StaticResource InvertedBoolConverter}}" />
+
+                            <CollectionView
+                                ItemsSource="{Binding Itinerary.Legs}"
+                                IsVisible="{Binding HasItinerary}"
+                                SelectionMode="None">
+
+                                <CollectionView.ItemTemplate>
+                                    <DataTemplate>
+
+                                        <Border
+                                            Margin="0,0,0,10"
+                                            BackgroundColor="#FFFFFF"
+                                            Stroke="#E2E8F0"
+                                            StrokeThickness="1"
+                                            StrokeShape="RoundRectangle 16"
+                                            Padding="14">
+
+                                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12">
+
+                                                <!-- ICONO / MODO -->
+                                                <Border
+                                                    WidthRequest="42"
+                                                    HeightRequest="42"
+                                                    BackgroundColor="#EEF2FF"
+                                                    StrokeThickness="0"
+                                                    StrokeShape="RoundRectangle 21"
+                                                    VerticalOptions="Start">
+
+                                                    <Label
+                                                        Text="{Binding Mode}"
+                                                        FontSize="10"
+                                                        FontAttributes="Bold"
+                                                        TextColor="#1F5FBF"
+                                                        HorizontalOptions="Center"
+                                                        VerticalOptions="Center"
+                                                        HorizontalTextAlignment="Center" />
+                                                </Border>
+
+                                                <!-- CONTENIDO -->
+                                                <VerticalStackLayout Grid.Column="1" Spacing="4">
+
+                                                    <Label
+                                                        Text="{Binding DisplayTitle}"
+                                                        FontSize="15"
+                                                        FontAttributes="Bold"
+                                                        TextColor="#0B2545" />
+
+                                                    <Label
+                                                        Text="{Binding DisplaySubtitle}"
+                                                        FontSize="13"
+                                                        TextColor="#475569" />
+
+                                                    <Label
+                                                        Text="{Binding FromName}"
+                                                        FontSize="12"
+                                                        TextColor="#64748B"
+                                                        LineBreakMode="TailTruncation" />
+
+                                                    <Label
+                                                        Text="{Binding ToName}"
+                                                        FontSize="12"
+                                                        TextColor="#64748B"
+                                                        LineBreakMode="TailTruncation" />
+
+                                                    <Grid
+                                                        Margin="0,6,0,0"
+                                                        ColumnDefinitions="Auto,Auto"
+                                                        ColumnSpacing="10">
+
+                                                        <Label
+                                                            Text="{Binding DurationText}"
+                                                            FontSize="12"
+                                                            FontAttributes="Bold"
+                                                            TextColor="#D94FA8" />
+
+                                                        <Label
+                                                            Grid.Column="1"
+                                                            Text="{Binding DistanceText}"
+                                                            FontSize="12"
+                                                            FontAttributes="Bold"
+                                                            TextColor="#475569" />
+                                                    </Grid>
+                                                </VerticalStackLayout>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </CollectionView.ItemTemplate>
+                            </CollectionView>
                         </VerticalStackLayout>
                     </VerticalStackLayout>
-                </Border>
+                </ScrollView>
             </Grid>
         </Border>
     </Grid>
