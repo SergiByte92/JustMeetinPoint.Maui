@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using JustMeetinPoint.Maui.Features.Groups.Services;
 using JustMeetinPoint.Maui.Features.Map.Models;
 using JustMeetinPoint.Maui.Features.Shared.Services;
+using System.Diagnostics;
 
 namespace JustMeetinPoint.Maui.Features.Groups.ViewModels;
 
@@ -25,6 +26,8 @@ public partial class GroupLobbyViewModel : ObservableObject
         _meetingStateService = meetingStateService;
     }
 
+    #region Properties
+
     [ObservableProperty] private string groupCode = string.Empty;
     [ObservableProperty] private int memberCount;
     [ObservableProperty] private bool hasStarted;
@@ -44,299 +47,168 @@ public partial class GroupLobbyViewModel : ObservableObject
         }
     }
 
+    // Propiedades calculadas para la UI
     public bool CanStartGroup => IsCurrentUserHost && !HasStarted;
     public bool HasError => !string.IsNullOrWhiteSpace(ErrorMessage);
-
-    public string StatusText => HasStarted
-        ? "Calculando punto de encuentro..."
-        : "Esperando a más participantes...";
-
-    public string ParticipantsText =>
-        $"{MemberCount} participante{(MemberCount == 1 ? "" : "s")} conectado{(MemberCount == 1 ? "" : "s")}";
-
+    public bool IsCalculating => HasStarted && !HasError;
     public int CurrentStep => HasStarted ? 3 : 2;
-    public bool IsCalculating => HasStarted;
 
-    public string Step1Color => CurrentStep >= 1 ? "#1F5FBF" : "#D9DEE5";
-    public string Step2Color => CurrentStep >= 2 ? "#1F5FBF" : "#D9DEE5";
-    public string Step3Color => CurrentStep >= 3 ? "#1F5FBF" : "#D9DEE5";
-
+    public string ParticipantsText => $"{MemberCount} participante{(MemberCount == 1 ? "" : "s")} conectado{(MemberCount == 1 ? "" : "s")}";
     public string LobbyTitle => HasStarted ? "Calculando punto de encuentro" : "Sala del grupo";
 
-    public string LobbySubtitle => HasStarted
-        ? "Estamos calculando la mejor opción para todos."
-        : "Comparte el código mientras llegan los participantes.";
+    #endregion
 
-    public string PrimaryStatusText => HasStarted
-        ? "Cálculo en curso"
-        : ParticipantsText;
-
-    public string SecondaryStatusText => HasStarted
-        ? "Esto puede tardar unos segundos."
-        : "Esperando a más participantes...";
+    #region Lifecycle & Logic
 
     partial void OnGroupCodeChanged(string value)
     {
         if (!string.IsNullOrWhiteSpace(value))
         {
-            Console.WriteLine($"[LobbyVM] GroupCode recibido: {value}. Host={IsCurrentUserHost}");
+            // Cargamos el lobby inicial
             MainThread.BeginInvokeOnMainThread(async () => await LoadLobbyAsync());
         }
     }
 
-    partial void OnMemberCountChanged(int value)
-    {
-        OnPropertyChanged(nameof(ParticipantsText));
-        OnPropertyChanged(nameof(PrimaryStatusText));
-    }
-
-    partial void OnHasStartedChanged(bool value)
-    {
-        Console.WriteLine($"[LobbyVM] HasStarted cambió a {value}. GroupCode={GroupCode}. Host={IsCurrentUserHost}");
-
-        OnPropertyChanged(nameof(StatusText));
-        OnPropertyChanged(nameof(CanStartGroup));
-        OnPropertyChanged(nameof(CurrentStep));
-        OnPropertyChanged(nameof(IsCalculating));
-        OnPropertyChanged(nameof(Step1Color));
-        OnPropertyChanged(nameof(Step2Color));
-        OnPropertyChanged(nameof(Step3Color));
-        OnPropertyChanged(nameof(LobbyTitle));
-        OnPropertyChanged(nameof(LobbySubtitle));
-        OnPropertyChanged(nameof(PrimaryStatusText));
-        OnPropertyChanged(nameof(SecondaryStatusText));
-    }
-
-    partial void OnErrorMessageChanged(string value)
-    {
-        OnPropertyChanged(nameof(HasError));
-    }
-
+    /// <summary>
+    /// Bucle de refresco automático. Se detiene ante cualquier señal de inicio o error.
+    /// </summary>
     public void StartAutoRefreshLoop()
     {
-        if (_isAutoRefreshRunning)
-            return;
-
-        if (string.IsNullOrWhiteSpace(GroupCode))
-            return;
+        if (_isAutoRefreshRunning || string.IsNullOrWhiteSpace(GroupCode)) return;
 
         _autoRefreshCts = new CancellationTokenSource();
         _isAutoRefreshRunning = true;
-
-        Console.WriteLine($"[LobbyVM] StartAutoRefreshLoop -> Group={GroupCode}, Host={IsCurrentUserHost}");
-
         _ = RunAutoRefreshLoopAsync(_autoRefreshCts.Token);
     }
 
     public void StopAutoRefreshLoop()
     {
-        Console.WriteLine($"[LobbyVM] StopAutoRefreshLoop -> Group={GroupCode}, Host={IsCurrentUserHost}");
-
         _autoRefreshCts?.Cancel();
         _autoRefreshCts?.Dispose();
         _autoRefreshCts = null;
         _isAutoRefreshRunning = false;
     }
 
-    private async Task RunAutoRefreshLoopAsync(CancellationToken cancellationToken)
+    private async Task RunAutoRefreshLoopAsync(CancellationToken ct)
     {
         try
         {
-            while (!cancellationToken.IsCancellationRequested)
+            while (!ct.IsCancellationRequested)
             {
+                // Solo refrescamos si no estamos ya en proceso de enviar ubicación
                 if (!string.IsNullOrWhiteSpace(GroupCode) && !_hasSentLocation)
                 {
-                    await MainThread.InvokeOnMainThreadAsync(async () =>
-                    {
-                        await LoadLobbyAsync();
-                    });
+                    await LoadLobbyAsync();
                 }
-
-                await Task.Delay(1500, cancellationToken);
+                await Task.Delay(1500, ct);
             }
         }
-        catch (TaskCanceledException)
-        {
-            Console.WriteLine($"[LobbyVM] AutoRefresh cancelado -> Group={GroupCode}");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"[LobbyVM] Error en AutoRefreshLoop: {ex}");
-        }
-        finally
-        {
-            _isAutoRefreshRunning = false;
-        }
+        catch (OperationCanceledException) { /* Detención normal */ }
+        finally { _isAutoRefreshRunning = false; }
     }
 
     [RelayCommand]
     private async Task LoadLobbyAsync()
     {
-        if (IsBusy || string.IsNullOrWhiteSpace(GroupCode))
-            return;
+        // Si el grupo ya empezó o estamos ocupados, bloqueamos la entrada
+        if (IsBusy || _hasSentLocation || string.IsNullOrWhiteSpace(GroupCode)) return;
 
         try
         {
             IsBusy = true;
-            ErrorMessage = string.Empty;
-
-            Console.WriteLine($"[LobbyVM] LoadLobbyAsync -> Group={GroupCode}, Host={IsCurrentUserHost}");
-
             var lobby = await _groupService.RefreshLobbyAsync(GroupCode, IsCurrentUserHost);
 
             MemberCount = lobby.MemberCount;
             HasStarted = lobby.HasStarted;
 
-            Console.WriteLine($"[LobbyVM] RefreshLobbyAsync -> MemberCount={MemberCount}, HasStarted={HasStarted}, Host={IsCurrentUserHost}, HasSentLocation={_hasSentLocation}");
-
+            // PUNTO CLAVE: Si detectamos que ha empezado, disparamos la fase final
             if (HasStarted && !_hasSentLocation)
             {
                 _hasSentLocation = true;
+                StopAutoRefreshLoop(); // Paramos el bucle antes de que el socket se ensucie
 
-                Console.WriteLine($"[LobbyVM] HasStarted=true y aún no se ha enviado ubicación. Entrando a SendCurrentLocationAndNavigateToMapAsync. Group={GroupCode}, Host={IsCurrentUserHost}");
-
-                await SendCurrentLocationAndNavigateToMapAsync();
+                // Ejecutamos la navegación sin esperar (fire and forget) para liberar el flujo
+                _ = Task.Run(async () => await SendCurrentLocationAndNavigateToMapAsync());
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error al cargar el lobby: {ex.Message}";
-            Console.WriteLine($"[LobbyVM] Error en LoadLobbyAsync: {ex}");
+            Debug.WriteLine($"[Lobby] Error: {ex.Message}");
         }
         finally
         {
-            IsBusy = false;
+            // Solo quitamos el Busy si no hemos empezado, para mantener el spinner
+            if (!HasStarted) IsBusy = false;
         }
-    }
-
-    [RelayCommand]
-    private async Task RefreshAsync()
-    {
-        Console.WriteLine($"[LobbyVM] RefreshAsync manual. Group={GroupCode}, Host={IsCurrentUserHost}");
-        await LoadLobbyAsync();
     }
 
     [RelayCommand]
     private async Task StartAsync()
     {
-        if (IsBusy || !CanStartGroup)
-            return;
+        if (IsBusy || !CanStartGroup) return;
 
         try
         {
             IsBusy = true;
-            ErrorMessage = string.Empty;
-
-            Console.WriteLine($"[LobbyVM] StartAsync -> Group={GroupCode}, Host={IsCurrentUserHost}");
-
             bool started = await _groupService.StartGroupAsync(GroupCode, IsCurrentUserHost);
 
-            Console.WriteLine($"[LobbyVM] StartGroupAsync => {started}");
-
-            if (!started)
+            if (started)
             {
-                ErrorMessage = "No se pudo iniciar el grupo.";
-                return;
-            }
-
-            HasStarted = true;
-
-            if (!_hasSentLocation)
-            {
+                HasStarted = true;
                 _hasSentLocation = true;
-
-                Console.WriteLine($"[LobbyVM] StartAsync OK. Owner enviará ubicación. Group={GroupCode}, Host={IsCurrentUserHost}");
+                StopAutoRefreshLoop();
                 await SendCurrentLocationAndNavigateToMapAsync();
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Error al iniciar el grupo: {ex.Message}";
-            Console.WriteLine($"[LobbyVM] Error en StartAsync: {ex}");
+            ErrorMessage = "Error al iniciar grupo.";
         }
-        finally
+        finally { IsBusy = false; }
+    }
+
+    private async Task SendCurrentLocationAndNavigateToMapAsync()
+    {
+        try
         {
-            IsBusy = false;
+            // 1. Obtener GPS (Tarea pesada)
+            var location = await Geolocation.Default.GetLocationAsync(
+                new GeolocationRequest(GeolocationAccuracy.High, TimeSpan.FromSeconds(10)));
+
+            if (location == null) throw new Exception("GPS no disponible");
+
+            // 2. Comunicar con Servidor y esperar resultado final de ruta
+            var result = await _groupService.SendLocationAndWaitResultAsync(
+                GroupCode, location.Latitude, location.Longitude);
+
+            if (result != null)
+            {
+                _meetingStateService.CurrentResult = result;
+
+                // 3. Navegar en el hilo de la UI
+                await MainThread.InvokeOnMainThreadAsync(async () =>
+                {
+                    await Shell.Current.GoToAsync("//main/map");
+                });
+            }
+        }
+        catch (Exception ex)
+        {
+            MainThread.BeginInvokeOnMainThread(() => {
+                ErrorMessage = "Fallo al calcular punto de encuentro.";
+                _hasSentLocation = false; // Permitimos reintento
+                IsBusy = false;
+            });
         }
     }
 
     [RelayCommand]
     private async Task LeaveGroupAsync()
     {
-        if (IsBusy || string.IsNullOrWhiteSpace(GroupCode))
-            return;
-
-        try
-        {
-            IsBusy = true;
-            ErrorMessage = string.Empty;
-
-            Console.WriteLine($"[LobbyVM] LeaveGroupAsync -> Group={GroupCode}, Host={IsCurrentUserHost}");
-
-            StopAutoRefreshLoop();
-
-            await _groupService.LeaveGroupAsync(GroupCode);
-            await Shell.Current.GoToAsync("//main/groups");
-        }
-        catch (Exception ex)
-        {
-            ErrorMessage = $"Error al salir del grupo: {ex.Message}";
-            Console.WriteLine($"[LobbyVM] Error en LeaveGroupAsync: {ex}");
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-    }
-
-    private async Task SendCurrentLocationAndNavigateToMapAsync()
-    {
-        Console.WriteLine($"[LobbyVM] Entrando en SendCurrentLocationAndNavigateToMapAsync. Group={GroupCode}, Host={IsCurrentUserHost}");
-
-        var permission = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
-        Console.WriteLine($"[LobbyVM] Permiso ubicación inicial: {permission}");
-
-        if (permission != PermissionStatus.Granted)
-        {
-            permission = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
-            Console.WriteLine($"[LobbyVM] Permiso ubicación tras pedirlo: {permission}");
-        }
-
-        if (permission != PermissionStatus.Granted)
-            throw new InvalidOperationException("Permiso de ubicación denegado.");
-
-        await Task.Delay(1500);
-
-        Location? location = await Geolocation.Default.GetLocationAsync(
-            new GeolocationRequest(
-                GeolocationAccuracy.High,
-                TimeSpan.FromSeconds(15)));
-
-        Console.WriteLine($"[LobbyVM] GetLocationAsync null? {location == null}");
-
-        if (location == null)
-            throw new InvalidOperationException("No se pudo obtener la ubicación actual.");
-
-        Console.WriteLine($"[LobbyVM] Ubicación obtenida: {location.Latitude}, {location.Longitude}");
-
-        Console.WriteLine($"[LobbyVM] Llamando a SendLocationAndWaitResultAsync. Group={GroupCode}, Host={IsCurrentUserHost}");
-        MeetingResultModel? result = await _groupService.SendLocationAndWaitResultAsync(
-            GroupCode,
-            location.Latitude,
-            location.Longitude);
-
-        Console.WriteLine($"[LobbyVM] Resultado null? {result == null}");
-
-        if (result == null)
-            throw new InvalidOperationException("No se recibió resultado del servidor.");
-
-        Console.WriteLine($"[LobbyVM] Resultado recibido: {result.Latitude}, {result.Longitude}, {result.DurationSeconds}");
-
-        _meetingStateService.CurrentResult = result;
-
         StopAutoRefreshLoop();
-
-        await Task.Delay(1800);
-        await Shell.Current.GoToAsync("//main/map");
+        await _groupService.LeaveGroupAsync(GroupCode);
+        await Shell.Current.GoToAsync("//main/groups");
     }
+
+    #endregion
 }

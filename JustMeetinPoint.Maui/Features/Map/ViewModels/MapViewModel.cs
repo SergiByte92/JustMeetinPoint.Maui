@@ -2,7 +2,6 @@
 using JustMeetinPoint.Maui.Features.Shared.Services;
 using JustMeetinPoint.Maui.Features.Map.Models;
 
-
 namespace JustMeetinPoint.Maui.Features.Map.ViewModels;
 
 public partial class MapViewModel : ObservableObject
@@ -47,7 +46,15 @@ public partial class MapViewModel : ObservableObject
     [ObservableProperty]
     private bool isSheetExpanded;
 
+    [ObservableProperty]
+    private TransitItineraryModel? itinerary;
+
+    [ObservableProperty]
+    private bool hasValidRoute;
+
     public List<RoutePointModel> RoutePoints { get; private set; } = new();
+
+    public bool HasItinerary => Itinerary is not null && Itinerary.Legs.Count > 0;
 
     public string SummaryText
     {
@@ -55,6 +62,9 @@ public partial class MapViewModel : ObservableObject
         {
             if (IsDefaultMap)
                 return "Sin datos de ruta";
+
+            if (!HasValidRoute)
+                return "Ruta no disponible";
 
             return $"{DurationText} · {DistanceText}";
         }
@@ -67,7 +77,7 @@ public partial class MapViewModel : ObservableObject
             if (IsDefaultMap)
                 return "Sin datos de ruta";
 
-            if (DurationSeconds <= 0)
+            if (!HasValidRoute || DurationSeconds <= 0)
                 return "Duración no disponible";
 
             if (DurationSeconds < 60)
@@ -80,6 +90,18 @@ public partial class MapViewModel : ObservableObject
                 return $"{minutes} min";
 
             return $"{minutes} min {seconds} seg";
+        }
+    }
+
+    public string TransfersText
+    {
+        get
+        {
+            if (!HasItinerary)
+                return "Sin itinerario";
+
+            int transfers = Itinerary!.TransfersCount;
+            return transfers == 0 ? "Sin transbordos" : $"{transfers} transbordo{(transfers == 1 ? "" : "s")}";
         }
     }
 
@@ -97,6 +119,18 @@ public partial class MapViewModel : ObservableObject
 
     partial void OnDistanceTextChanged(string value)
     {
+        OnPropertyChanged(nameof(SummaryText));
+    }
+
+    partial void OnItineraryChanged(TransitItineraryModel? value)
+    {
+        OnPropertyChanged(nameof(HasItinerary));
+        OnPropertyChanged(nameof(TransfersText));
+    }
+
+    partial void OnHasValidRouteChanged(bool value)
+    {
+        OnPropertyChanged(nameof(DurationText));
         OnPropertyChanged(nameof(SummaryText));
     }
 
@@ -121,6 +155,9 @@ public partial class MapViewModel : ObservableObject
             FairnessText = result.FairnessText;
 
             RoutePoints = result.RoutePoints ?? new List<RoutePointModel>();
+            Itinerary = result.Itinerary;
+            HasValidRoute = result.HasValidRoute;
+
             IsDefaultMap = false;
         }
         else
@@ -138,12 +175,17 @@ public partial class MapViewModel : ObservableObject
             FairnessText = "Sin resultado";
 
             RoutePoints = new List<RoutePointModel>();
+            Itinerary = null;
+            HasValidRoute = false;
+
             IsDefaultMap = true;
         }
 
         OnPropertyChanged(nameof(DurationText));
         OnPropertyChanged(nameof(SummaryText));
         OnPropertyChanged(nameof(RoutePoints));
+        OnPropertyChanged(nameof(HasItinerary));
+        OnPropertyChanged(nameof(TransfersText));
 
         return Task.CompletedTask;
     }

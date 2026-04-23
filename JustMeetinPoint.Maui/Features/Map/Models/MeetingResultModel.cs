@@ -1,4 +1,6 @@
-﻿namespace JustMeetinPoint.Maui.Features.Map.Models;
+﻿using JustMeetinPoint.Maui.Features.Map.Models;
+
+namespace JustMeetinPoint.Maui.Features.Map.Models;
 
 public class MeetingResultModel
 {
@@ -9,10 +11,15 @@ public class MeetingResultModel
     public double OriginLatitude { get; set; }
     public double OriginLongitude { get; set; }
 
-    public string MeetingPointName { get; set; } = "Punto de encuentro";
-    public string AddressText { get; set; } = "Dirección no disponible";
-    public string DistanceText { get; set; } = "Distancia no disponible";
-    public string FairnessText { get; set; } = "Información no disponible";
+    public string MeetingPointName { get; set; } = string.Empty;
+    public string AddressText { get; set; } = string.Empty;
+    public string DistanceText { get; set; } = string.Empty;
+    public string FairnessText { get; set; } = string.Empty;
 
     public List<RoutePointModel> RoutePoints { get; set; } = new();
+
+    public TransitItineraryModel? Itinerary { get; set; }
+
+    public bool HasValidRoute { get; set; }
+    public bool HasRouteDetails => Itinerary is not null && Itinerary.Legs.Count > 0;
 }

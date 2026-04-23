@@ -20,6 +20,9 @@ public class GroupService : IGroupService
     private const int LobbyOptionSendLocation = 4;
     private const int LobbyOptionPollResult = 5;
 
+    private const int PollDelayMilliseconds = 1500;
+    private const int MaxPollAttempts = 40; // ~60 segundos
+
     public GroupService(IAuthService authService)
     {
         _authService = authService;
@@ -63,6 +66,7 @@ public class GroupService : IGroupService
             };
         });
     }
+
     public async Task<GroupLobbyModel> JoinGroupAsync(string groupCode)
     {
         return await Task.Run(() =>
@@ -99,6 +103,8 @@ public class GroupService : IGroupService
         {
             Socket socket = GetAuthenticatedSocket();
 
+            Console.WriteLine($"[GroupService] RefreshLobbyAsync -> Group={groupCode}, Host={isCurrentUserHost}");
+
             SocketTools.sendInt(socket, LobbyOptionRefresh);
 
             bool sessionValid = SocketTools.receiveBool(socket);
@@ -107,6 +113,8 @@ public class GroupService : IGroupService
 
             int memberCount = SocketTools.receiveInt(socket);
             bool hasStarted = SocketTools.receiveBool(socket);
+
+            Console.WriteLine($"[GroupService] RefreshLobbyAsync <- MemberCount={memberCount}, HasStarted={hasStarted}");
 
             return new GroupLobbyModel
             {
@@ -135,6 +143,8 @@ public class GroupService : IGroupService
                 return false;
 
             Socket socket = GetAuthenticatedSocket();
+
+            Console.WriteLine($"[GroupService] StartGroupAsync -> Group={groupCode}, Host={isCurrentUserHost}");
 
             SocketTools.sendInt(socket, LobbyOptionStart);
             bool started = SocketTools.receiveBool(socket);
@@ -176,46 +186,21 @@ public class GroupService : IGroupService
 
             Console.WriteLine($"[GroupService] Respuesta inicial => lat:{resultLat}, lon:{resultLon}, duration:{duration}");
 
-            if (duration >= 0)
+            MeetingResultModel? immediateResult = BuildMeetingResultFromServerResponse(
+                resultLat,
+                resultLon,
+                duration,
+                latitude,
+                longitude);
+
+            if (immediateResult is not null)
+                return immediateResult;
+
+            for (int attempt = 1; attempt <= MaxPollAttempts; attempt++)
             {
-                return new MeetingResultModel
-                {
-                    Latitude = resultLat,
-                    Longitude = resultLon,
-                    DurationSeconds = duration,
-                    OriginLatitude = latitude,
-                    OriginLongitude = longitude,
-                    MeetingPointName = "Punto de encuentro",
-                    AddressText = "Dirección no disponible",
-                    DistanceText = "Distancia no disponible",
-                    FairnessText = "Resultado calculado correctamente"
-                };
-            }
+                Thread.Sleep(PollDelayMilliseconds);
 
-            if (duration == -2)
-                throw new InvalidOperationException("Error calculando la ruta en el servidor.");
-
-            if (duration == -3)
-            {
-                return new MeetingResultModel
-                {
-                    Latitude = resultLat,
-                    Longitude = resultLon,
-                    DurationSeconds = 0,
-                    OriginLatitude = latitude,
-                    OriginLongitude = longitude,
-                    MeetingPointName = "Punto de encuentro",
-                    AddressText = "No se encontró una ruta válida",
-                    DistanceText = "Distancia no disponible",
-                    FairnessText = "Centroide calculado, pero sin ruta disponible"
-                };
-            }
-
-            while (true)
-            {
-                Thread.Sleep(1500);
-
-                Console.WriteLine("[GroupService] PollResult: leyendo cabecera...");
+                Console.WriteLine($"[GroupService] Poll attempt {attempt}/{MaxPollAttempts}: leyendo cabecera...");
 
                 bool sessionValid = SocketTools.receiveBool(socket);
                 if (!sessionValid)
@@ -224,7 +209,7 @@ public class GroupService : IGroupService
                 SocketTools.receiveInt(socket);   // memberCount
                 SocketTools.receiveBool(socket);  // hasStarted
 
-                Console.WriteLine("[GroupService] Enviando PollResult...");
+                Console.WriteLine($"[GroupService] Poll attempt {attempt}/{MaxPollAttempts}: enviando PollResult...");
                 SocketTools.sendInt(socket, LobbyOptionPollResult);
 
                 resultLat = SocketTools.receiveDouble(socket);
@@ -233,42 +218,68 @@ public class GroupService : IGroupService
 
                 Console.WriteLine($"[GroupService] Poll => lat:{resultLat}, lon:{resultLon}, duration:{duration}");
 
-                if (duration >= 0)
-                {
-                    return new MeetingResultModel
-                    {
-                        Latitude = resultLat,
-                        Longitude = resultLon,
-                        DurationSeconds = duration,
-                        OriginLatitude = latitude,
-                        OriginLongitude = longitude,
-                        MeetingPointName = "Punto de encuentro",
-                        AddressText = "Dirección no disponible",
-                        DistanceText = "Distancia no disponible",
-                        FairnessText = "Resultado calculado correctamente"
-                    };
-                }
+                MeetingResultModel? pollResult = BuildMeetingResultFromServerResponse(
+                    resultLat,
+                    resultLon,
+                    duration,
+                    latitude,
+                    longitude);
 
-                if (duration == -2)
-                    throw new InvalidOperationException("Error calculando la ruta en el servidor.");
+                if (pollResult is not null)
+                    return pollResult;
 
-                if (duration == -3)
-                {
-                    return new MeetingResultModel
-                    {
-                        Latitude = resultLat,
-                        Longitude = resultLon,
-                        DurationSeconds = 0,
-                        OriginLatitude = latitude,
-                        OriginLongitude = longitude,
-                        MeetingPointName = "Punto de encuentro",
-                        AddressText = "No se encontró una ruta válida",
-                        DistanceText = "Distancia no disponible",
-                        FairnessText = "Centroide calculado, pero sin ruta disponible"
-                    };
-                }
+                if (duration == -1)
+                    continue;
             }
+
+            throw new InvalidOperationException("El cálculo está tardando demasiado. Inténtalo de nuevo.");
         });
+    }
+
+    private static MeetingResultModel? BuildMeetingResultFromServerResponse(
+        double resultLat,
+        double resultLon,
+        int duration,
+        double originLatitude,
+        double originLongitude)
+    {
+        if (duration >= 0)
+        {
+            return new MeetingResultModel
+            {
+                Latitude = resultLat,
+                Longitude = resultLon,
+                DurationSeconds = duration,
+                OriginLatitude = originLatitude,
+                OriginLongitude = originLongitude,
+                MeetingPointName = "Punto de encuentro",
+                AddressText = "Dirección no disponible",
+                DistanceText = "Distancia no disponible",
+                FairnessText = "Resultado calculado correctamente"
+            };
+        }
+
+        if (duration == -2)
+            throw new InvalidOperationException("Error calculando la ruta en el servidor.");
+
+        if (duration == -3)
+        {
+            return new MeetingResultModel
+            {
+                Latitude = resultLat,
+                Longitude = resultLon,
+                DurationSeconds = 0,
+                OriginLatitude = originLatitude,
+                OriginLongitude = originLongitude,
+                MeetingPointName = "Punto de encuentro",
+                AddressText = "No se encontró una ruta válida",
+                DistanceText = "Distancia no disponible",
+                FairnessText = "Centroide calculado, pero sin ruta disponible"
+            };
+        }
+
+        // duration == -1 => aún faltan ubicaciones / aún no hay resultado
+        return null;
     }
 
     private Socket GetAuthenticatedSocket()
