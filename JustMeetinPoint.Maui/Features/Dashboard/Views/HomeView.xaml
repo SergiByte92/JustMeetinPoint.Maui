@@ -16,7 +16,7 @@
             <Setter Property="Padding" Value="20" />
             <Setter Property="StrokeShape">
                 <Setter.Value>
-                    <RoundRectangle CornerRadius="16" />
+                    <RoundRectangle CornerRadius="20" />
                 </Setter.Value>
             </Setter>
             <Setter Property="Shadow">
@@ -41,6 +41,27 @@
             </Setter>
         </Style>
 
+        <Style x:Key="M3ValueCard" TargetType="Border">
+            <Setter Property="BackgroundColor" Value="#FFFFFF" />
+            <Setter Property="Stroke" Value="#E5E7EB" />
+            <Setter Property="StrokeThickness" Value="1" />
+            <Setter Property="Padding" Value="12" />
+            <Setter Property="MinimumHeightRequest" Value="140" />
+            <Setter Property="StrokeShape">
+                <Setter.Value>
+                    <RoundRectangle CornerRadius="18" />
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Shadow">
+                <Setter.Value>
+                    <Shadow Brush="#000000"
+                            Opacity="0.07"
+                            Offset="0,2"
+                            Radius="7" />
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <Style x:Key="M3PrimaryButton" TargetType="Button">
             <Setter Property="BackgroundColor" Value="#0B2545" />
             <Setter Property="TextColor" Value="#FFFFFF" />
@@ -61,7 +82,7 @@
     <Grid RowDefinitions="*">
 
         <ScrollView>
-            <VerticalStackLayout Padding="16,20,16,28" Spacing="16">
+            <VerticalStackLayout Padding="20,22,20,32" Spacing="18">
 
                 <!-- SALUDO -->
                 <VerticalStackLayout Spacing="4">
@@ -91,12 +112,12 @@
 
                 <!-- CTA PRINCIPAL -->
                 <Border Style="{StaticResource M3ElevatedCard}">
-                    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="12">
+                    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="14">
 
                         <VerticalStackLayout Grid.Row="0" Spacing="6">
                             <Label
                                 Text="{Binding MainCtaTitle}"
-                                FontSize="20"
+                                FontSize="21"
                                 FontAttributes="Bold"
                                 TextColor="#202124" />
 
@@ -125,204 +146,148 @@
                 <VerticalStackLayout Spacing="12">
 
                     <Label
-        Text="Para una quedada perfecta"
-        FontSize="17"
-        FontAttributes="Bold"
-        TextColor="#0B2545" />
+                        Text="Para una quedada perfecta"
+                        FontSize="17"
+                        FontAttributes="Bold"
+                        TextColor="#0B2545" />
 
-                    <Grid
-        ColumnDefinitions="*,*,*"
-        ColumnSpacing="10">
+                    <Grid ColumnDefinitions="*,*,*" ColumnSpacing="10">
 
                         <!-- CARD 1 -->
-                        <Border
-            Grid.Column="0"
-            BackgroundColor="#FFFFFF"
-            Stroke="#E5E7EB"
-            StrokeThickness="1"
-            Padding="10"
-            MinimumHeightRequest="150">
-
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="18" />
-                            </Border.StrokeShape>
-
-                            <Border.Shadow>
-                                <Shadow Brush="#000000"
-                        Opacity="0.05"
-                        Offset="0,2"
-                        Radius="6" />
-                            </Border.Shadow>
-
+                        <Border Grid.Column="0" Style="{StaticResource M3ValueCard}">
                             <VerticalStackLayout
-                Spacing="8"
-                HorizontalOptions="Center"
-                VerticalOptions="Center">
+                                Spacing="8"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center">
 
                                 <Border
-                    WidthRequest="58"
-                    HeightRequest="58"
-                    BackgroundColor="#F1F0FB"
-                    StrokeThickness="0"
-                    HorizontalOptions="Center">
+                                    WidthRequest="62"
+                                    HeightRequest="62"
+                                    BackgroundColor="#E6E1FF"
+                                    StrokeThickness="0"
+                                    HorizontalOptions="Center">
 
                                     <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="29" />
+                                        <RoundRectangle CornerRadius="31" />
                                     </Border.StrokeShape>
 
                                     <Image
-                        Source="balance.svg"
-                        WidthRequest="34"
-                        HeightRequest="34"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
+                                        Source="balance.svg"
+                                        WidthRequest="38"
+                                        HeightRequest="38"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center" />
                                 </Border>
 
                                 <Label
-                    Text="Punto justo"
-                    FontSize="12"
-                    FontAttributes="Bold"
-                    TextColor="#0B2545"
-                    HorizontalTextAlignment="Center"
-                    LineBreakMode="TailTruncation" />
+                                    Text="Punto justo"
+                                    FontSize="12"
+                                    FontAttributes="Bold"
+                                    TextColor="#0B2545"
+                                    HorizontalTextAlignment="Center"
+                                    LineBreakMode="TailTruncation" />
 
                                 <Label
-                    Text="Equilibrado"
-                    FontSize="10"
-                    TextColor="#64748B"
-                    HorizontalTextAlignment="Center"
-                    LineBreakMode="TailTruncation" />
+                                    Text="Equilibrado"
+                                    FontSize="10"
+                                    TextColor="#64748B"
+                                    HorizontalTextAlignment="Center"
+                                    LineBreakMode="TailTruncation" />
 
                             </VerticalStackLayout>
                         </Border>
 
                         <!-- CARD 2 -->
-                        <Border
-            Grid.Column="1"
-            BackgroundColor="#FFFFFF"
-            Stroke="#E5E7EB"
-            StrokeThickness="1"
-            Padding="10"
-            MinimumHeightRequest="150">
-
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="18" />
-                            </Border.StrokeShape>
-
-                            <Border.Shadow>
-                                <Shadow Brush="#000000"
-                        Opacity="0.05"
-                        Offset="0,2"
-                        Radius="6" />
-                            </Border.Shadow>
-
+                        <Border Grid.Column="1" Style="{StaticResource M3ValueCard}">
                             <VerticalStackLayout
-                Spacing="8"
-                HorizontalOptions="Center"
-                VerticalOptions="Center">
+                                Spacing="8"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center">
 
                                 <Border
-                    WidthRequest="58"
-                    HeightRequest="58"
-                    BackgroundColor="#EEF6FF"
-                    StrokeThickness="0"
-                    HorizontalOptions="Center">
+                                    WidthRequest="62"
+                                    HeightRequest="62"
+                                    BackgroundColor="#DCEEFF"
+                                    StrokeThickness="0"
+                                    HorizontalOptions="Center">
 
                                     <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="29" />
+                                        <RoundRectangle CornerRadius="31" />
                                     </Border.StrokeShape>
 
                                     <Image
-                        Source="route.svg"
-                        WidthRequest="34"
-                        HeightRequest="34"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
+                                        Source="route.svg"
+                                        WidthRequest="38"
+                                        HeightRequest="38"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center" />
                                 </Border>
 
                                 <Label
-                    Text="Menos vueltas"
-                    FontSize="12"
-                    FontAttributes="Bold"
-                    TextColor="#0B2545"
-                    HorizontalTextAlignment="Center"
-                    LineBreakMode="TailTruncation" />
+                                    Text="Menos vueltas"
+                                    FontSize="12"
+                                    FontAttributes="Bold"
+                                    TextColor="#0B2545"
+                                    HorizontalTextAlignment="Center"
+                                    LineBreakMode="TailTruncation" />
 
                                 <Label
-                    Text="Rutas directas"
-                    FontSize="10"
-                    TextColor="#64748B"
-                    HorizontalTextAlignment="Center"
-                    LineBreakMode="TailTruncation" />
+                                    Text="Rutas directas"
+                                    FontSize="10"
+                                    TextColor="#64748B"
+                                    HorizontalTextAlignment="Center"
+                                    LineBreakMode="TailTruncation" />
 
                             </VerticalStackLayout>
                         </Border>
 
                         <!-- CARD 3 -->
-                        <Border
-            Grid.Column="2"
-            BackgroundColor="#FFFFFF"
-            Stroke="#E5E7EB"
-            StrokeThickness="1"
-            Padding="10"
-            MinimumHeightRequest="150">
-
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="18" />
-                            </Border.StrokeShape>
-
-                            <Border.Shadow>
-                                <Shadow Brush="#000000"
-                        Opacity="0.05"
-                        Offset="0,2"
-                        Radius="6" />
-                            </Border.Shadow>
-
+                        <Border Grid.Column="2" Style="{StaticResource M3ValueCard}">
                             <VerticalStackLayout
-                Spacing="8"
-                HorizontalOptions="Center"
-                VerticalOptions="Center">
+                                Spacing="8"
+                                HorizontalOptions="Center"
+                                VerticalOptions="Center">
 
                                 <Border
-                    WidthRequest="58"
-                    HeightRequest="58"
-                    BackgroundColor="#ECFDF5"
-                    StrokeThickness="0"
-                    HorizontalOptions="Center">
+                                    WidthRequest="62"
+                                    HeightRequest="62"
+                                    BackgroundColor="#DDF7EA"
+                                    StrokeThickness="0"
+                                    HorizontalOptions="Center">
 
                                     <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="29" />
+                                        <RoundRectangle CornerRadius="31" />
                                     </Border.StrokeShape>
 
                                     <Image
-                        Source="groups.png"
-                        WidthRequest="34"
-                        HeightRequest="34"
-                        HorizontalOptions="Center"
-                        VerticalOptions="Center" />
+                                        Source="groups.png"
+                                        WidthRequest="38"
+                                        HeightRequest="38"
+                                        HorizontalOptions="Center"
+                                        VerticalOptions="Center" />
                                 </Border>
 
                                 <Label
-                    Text="Grupo listo"
-                    FontSize="12"
-                    FontAttributes="Bold"
-                    TextColor="#0B2545"
-                    HorizontalTextAlignment="Center"
-                    LineBreakMode="TailTruncation" />
+                                    Text="Grupo listo"
+                                    FontSize="12"
+                                    FontAttributes="Bold"
+                                    TextColor="#0B2545"
+                                    HorizontalTextAlignment="Center"
+                                    LineBreakMode="TailTruncation" />
 
                                 <Label
-                    Text="Coordinados"
-                    FontSize="10"
-                    TextColor="#64748B"
-                    HorizontalTextAlignment="Center"
-                    LineBreakMode="TailTruncation" />
+                                    Text="Coordinados"
+                                    FontSize="10"
+                                    TextColor="#64748B"
+                                    HorizontalTextAlignment="Center"
+                                    LineBreakMode="TailTruncation" />
 
                             </VerticalStackLayout>
                         </Border>
 
                     </Grid>
-
                 </VerticalStackLayout>
+
             </VerticalStackLayout>
         </ScrollView>
 
