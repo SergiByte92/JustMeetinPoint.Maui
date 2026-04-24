@@ -12,19 +12,21 @@
 
         <Style x:Key="M3ElevatedCard" TargetType="Border">
             <Setter Property="BackgroundColor" Value="#FFFFFF" />
-            <Setter Property="StrokeThickness" Value="0" />
+            <Setter Property="Stroke" Value="#E5E7EB" />
+            <Setter Property="StrokeThickness" Value="1" />
             <Setter Property="Padding" Value="20" />
             <Setter Property="StrokeShape">
                 <Setter.Value>
-                    <RoundRectangle CornerRadius="20" />
+                    <RoundRectangle CornerRadius="22" />
                 </Setter.Value>
             </Setter>
             <Setter Property="Shadow">
                 <Setter.Value>
-                    <Shadow Brush="#000000"
-                            Opacity="0.08"
-                            Offset="0,3"
-                            Radius="8" />
+                    <Shadow
+                        Brush="#000000"
+                        Opacity="0.05"
+                        Offset="0,2"
+                        Radius="6" />
                 </Setter.Value>
             </Setter>
         </Style>
@@ -36,7 +38,7 @@
             <Setter Property="Padding" Value="16" />
             <Setter Property="StrokeShape">
                 <Setter.Value>
-                    <RoundRectangle CornerRadius="16" />
+                    <RoundRectangle CornerRadius="22" />
                 </Setter.Value>
             </Setter>
         </Style>
@@ -46,18 +48,10 @@
             <Setter Property="Stroke" Value="#E5E7EB" />
             <Setter Property="StrokeThickness" Value="1" />
             <Setter Property="Padding" Value="12" />
-            <Setter Property="MinimumHeightRequest" Value="140" />
+            <Setter Property="MinimumHeightRequest" Value="132" />
             <Setter Property="StrokeShape">
                 <Setter.Value>
                     <RoundRectangle CornerRadius="18" />
-                </Setter.Value>
-            </Setter>
-            <Setter Property="Shadow">
-                <Setter.Value>
-                    <Shadow Brush="#000000"
-                            Opacity="0.07"
-                            Offset="0,2"
-                            Radius="7" />
                 </Setter.Value>
             </Setter>
         </Style>
@@ -65,7 +59,7 @@
         <Style x:Key="M3PrimaryButton" TargetType="Button">
             <Setter Property="BackgroundColor" Value="#0B2545" />
             <Setter Property="TextColor" Value="#FFFFFF" />
-            <Setter Property="CornerRadius" Value="14" />
+            <Setter Property="CornerRadius" Value="16" />
             <Setter Property="HeightRequest" Value="48" />
             <Setter Property="FontAttributes" Value="Bold" />
             <Setter Property="FontSize" Value="14" />
@@ -73,7 +67,7 @@
 
         <Style x:Key="M3SecondaryText" TargetType="Label">
             <Setter Property="FontSize" Value="14" />
-            <Setter Property="TextColor" Value="#64748B" />
+            <Setter Property="TextColor" Value="#5F6368" />
             <Setter Property="LineBreakMode" Value="WordWrap" />
         </Style>
 
@@ -102,12 +96,12 @@
                     Style="{StaticResource M3OutlinedCard}"
                     IsVisible="{Binding HasError}"
                     BackgroundColor="#FFF7F7"
-                    Stroke="#FCA5A5">
+                    Stroke="#FAD2CF">
 
                     <Label
                         Text="{Binding ErrorMessage}"
                         FontSize="13"
-                        TextColor="#B91C1C" />
+                        TextColor="#D93025" />
                 </Border>
 
                 <!-- CTA PRINCIPAL -->
@@ -163,13 +157,10 @@
                                 <Border
                                     WidthRequest="62"
                                     HeightRequest="62"
-                                    BackgroundColor="#E6E1FF"
+                                    BackgroundColor="#E8F0FE"
                                     StrokeThickness="0"
-                                    HorizontalOptions="Center">
-
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="31" />
-                                    </Border.StrokeShape>
+                                    HorizontalOptions="Center"
+                                    StrokeShape="RoundRectangle 31">
 
                                     <Image
                                         Source="balance.svg"
@@ -189,8 +180,8 @@
 
                                 <Label
                                     Text="Equilibrado"
-                                    FontSize="10"
-                                    TextColor="#64748B"
+                                    FontSize="11"
+                                    TextColor="#5F6368"
                                     HorizontalTextAlignment="Center"
                                     LineBreakMode="TailTruncation" />
 
@@ -207,13 +198,10 @@
                                 <Border
                                     WidthRequest="62"
                                     HeightRequest="62"
-                                    BackgroundColor="#DCEEFF"
+                                    BackgroundColor="#E8F0FE"
                                     StrokeThickness="0"
-                                    HorizontalOptions="Center">
-
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="31" />
-                                    </Border.StrokeShape>
+                                    HorizontalOptions="Center"
+                                    StrokeShape="RoundRectangle 31">
 
                                     <Image
                                         Source="route.svg"
@@ -233,8 +221,8 @@
 
                                 <Label
                                     Text="Rutas directas"
-                                    FontSize="10"
-                                    TextColor="#64748B"
+                                    FontSize="11"
+                                    TextColor="#5F6368"
                                     HorizontalTextAlignment="Center"
                                     LineBreakMode="TailTruncation" />
 
@@ -251,16 +239,13 @@
                                 <Border
                                     WidthRequest="62"
                                     HeightRequest="62"
-                                    BackgroundColor="#DDF7EA"
+                                    BackgroundColor="#E8F0FE"
                                     StrokeThickness="0"
-                                    HorizontalOptions="Center">
-
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="31" />
-                                    </Border.StrokeShape>
+                                    HorizontalOptions="Center"
+                                    StrokeShape="RoundRectangle 31">
 
                                     <Image
-                                        Source="groups.png"
+                                        Source="groups.svg"
                                         WidthRequest="38"
                                         HeightRequest="38"
                                         HorizontalOptions="Center"
@@ -277,8 +262,8 @@
 
                                 <Label
                                     Text="Coordinados"
-                                    FontSize="10"
-                                    TextColor="#64748B"
+                                    FontSize="11"
+                                    TextColor="#5F6368"
                                     HorizontalTextAlignment="Center"
                                     LineBreakMode="TailTruncation" />
 
