@@ -1,17 +1,5 @@
 ﻿namespace JustMeetinPoint.Maui.Features.Map.Models;
 
-/// <summary>
-/// Representa un tramo de la ruta en cliente.
-/// 
-/// Cada leg puede ser:
-/// - WALK
-/// - BUS
-/// - RAIL
-/// - SUBWAY
-/// - etc.
-/// 
-/// Este modelo se usa directamente en el CollectionView del mapa.
-/// </summary>
 public sealed class RouteLegModel
 {
     public string Mode { get; set; } = string.Empty;
@@ -28,9 +16,32 @@ public sealed class RouteLegModel
 
     public string? EncodedPolyline { get; set; }
 
-    /// <summary>
-    /// Duración formateada para UI.
-    /// </summary>
+    public string NormalizedMode => Mode.Trim().ToUpperInvariant();
+
+    public string ModeIconSource => NormalizedMode switch
+    {
+        "WALK" or "FOOT" => "walk_mode.svg",
+        "BUS" => "bus_mode.svg",
+        "RAIL" or "TRAIN" => "train_mode.svg",
+        "SUBWAY" or "METRO" => "subway_mode.svg",
+        "TRAM" => "tram_mode.svg",
+        "BICYCLE" or "BIKE" => "transport_icon.svg",
+        "CAR" => "car_mode.svg",
+        _ => "route_icon.svg"
+    };
+
+    public string ModeText => NormalizedMode switch
+    {
+        "WALK" or "FOOT" => "A pie",
+        "BUS" => "Bus",
+        "RAIL" or "TRAIN" => "Tren",
+        "SUBWAY" or "METRO" => "Metro",
+        "TRAM" => "Tranvía",
+        "BICYCLE" or "BIKE" => "Bici",
+        "CAR" => "Coche",
+        _ => "Ruta"
+    };
+
     public string DurationText
     {
         get
@@ -47,9 +58,6 @@ public sealed class RouteLegModel
         }
     }
 
-    /// <summary>
-    /// Distancia formateada para UI.
-    /// </summary>
     public string DistanceText
     {
         get
@@ -64,30 +72,17 @@ public sealed class RouteLegModel
         }
     }
 
-    /// <summary>
-    /// Título principal del tramo.
-    /// </summary>
     public string DisplayTitle
     {
         get
         {
-            if (Mode.Equals("WALK", StringComparison.OrdinalIgnoreCase))
-                return "Caminar";
-
             if (!string.IsNullOrWhiteSpace(PublicCode))
-                return $"{Mode} {PublicCode}";
+                return $"{ModeText} {PublicCode}";
 
-            return string.IsNullOrWhiteSpace(Mode) ? "Tramo" : Mode;
+            return ModeText;
         }
     }
 
-    /// <summary>
-    /// Subtítulo del tramo.
-    /// Prioridad:
-    /// - dirección del transporte
-    /// - nombre de línea
-    /// - origen → destino
-    /// </summary>
     public string DisplaySubtitle
     {
         get

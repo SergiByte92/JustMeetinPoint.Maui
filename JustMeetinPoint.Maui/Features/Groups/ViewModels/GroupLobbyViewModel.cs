@@ -368,39 +368,42 @@ public partial class GroupLobbyViewModel : ObservableObject
                     GeolocationAccuracy.High,
                     TimeSpan.FromSeconds(10)));
 
-            if (location == null)
+            if (location is null)
             {
                 throw new InvalidOperationException("No se pudo obtener la ubicación actual.");
             }
 
-            Debug.WriteLine($"[LobbyVM] 3. Ubicación obtenida: {location.Latitude}, {location.Longitude}");
+            Debug.WriteLine(
+                $"[LobbyVM] 3. Ubicación obtenida: Lat={location.Latitude}, Lon={location.Longitude}");
+
             UpdateCalculatingState("Enviando tu ubicación al servidor...", 0.75);
+
+            Debug.WriteLine("[LobbyVM] 3.5. Enviando ubicación y esperando resultado del servidor...");
 
             MeetingResultModel? result = await _groupService.SendLocationAndWaitResultAsync(
                 GroupCode,
                 location.Latitude,
                 location.Longitude);
 
-            if (result == null)
+            Debug.WriteLine(result is null
+                ? "[LobbyVM] 4. Resultado NULL"
+                : $"[LobbyVM] 4. Resultado recibido: Lat={result.Latitude}, Lon={result.Longitude}, " +
+                  $"Duration={result.DurationSeconds}, Valid={result.HasValidRoute}, Legs={result.Legs?.Count ?? 0}");
+
+            if (result is null)
             {
                 throw new InvalidOperationException("No se recibió resultado del servidor.");
             }
 
-            Debug.WriteLine($"[LobbyVM] 4. Resultado recibido: {result.Latitude}, {result.Longitude}, {result.DurationSeconds}");
-
             _meetingStateService.CurrentResult = result;
 
-            if (result.DurationSeconds > 0)
-            {
-                UpdateCalculatingState("Ruta encontrada. Abriendo mapa...", 0.95);
-            }
-            else
-            {
-                // Para el caso -3 o similares: hay punto, pero no ruta disponible
-                UpdateCalculatingState("Punto calculado. No hay ruta disponible. Abriendo mapa...", 0.95);
-            }
+            UpdateCalculatingState(
+                result.DurationSeconds > 0
+                    ? "Ruta encontrada. Abriendo mapa..."
+                    : "Punto calculado. Abriendo mapa...",
+                0.95);
 
-            Debug.WriteLine("[LobbyVM] 5. Antes de navegar");
+            Debug.WriteLine("[LobbyVM] 5. Antes de navegar a //main/map");
 
             await MainThread.InvokeOnMainThreadAsync(async () =>
             {
@@ -414,7 +417,6 @@ public partial class GroupLobbyViewModel : ObservableObject
             await MainThread.InvokeOnMainThreadAsync(() =>
             {
                 ErrorMessage = $"Fallo al calcular el punto de encuentro: {ex.Message}";
-                _hasSentLocation = false; // permitimos reintento si algo falla
                 IsBusy = false;
             });
 
